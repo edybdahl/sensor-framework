@@ -1,5 +1,5 @@
 const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("/home/pi/.readings.db");
+const db = new sqlite3.Database("./data/.readings.db");
 
 const addData = ( type, value ) => {
 	db.serialize( function () {
