@@ -1,4 +1,11 @@
 const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
+
+let dir = "./data";
+if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+}
+
 const db = new sqlite3.Database("./data/.readings.db");
 
 const addData = ( type, value ) => {

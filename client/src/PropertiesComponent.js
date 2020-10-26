@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
 import PropertyComponent from "./PropertyComponent";
 import GridComponent from "./GridComponent"; 
-const ENDPOINT = "http://192.168.4.37:4001";
+
+const ENDPOINT = "http://192.168.4.36:4001";
 var send = null;
 var sendCommand;
 var subscribed = [];
