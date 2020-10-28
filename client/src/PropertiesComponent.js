@@ -3,7 +3,7 @@ import socketIOClient from "socket.io-client";
 import PropertyComponent from "./PropertyComponent";
 import GridComponent from "./GridComponent"; 
 
-const ENDPOINT = process.env.REACT_APP_URL || "http://192.168.4.37:4001";
+const ENDPOINT = process.env.REACT_APP_URL || "http://192.168.4.49:4001";
 var send = null;
 var sendCommand;
 var subscribed = [];
