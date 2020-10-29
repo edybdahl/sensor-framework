@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
-import PropertyComponent from "./PropertyComponent";
 import GridComponent from "./GridComponent"; 
 
 const ENDPOINT = process.env.REACT_APP_URL || "http://192.168.4.49:4001";
@@ -10,8 +9,6 @@ var subscribed = [];
 
 export default function PropertiesComponent() {
   const [resProp, setResProp] = useState([]);
-  const [resSub, setResSub] = useState([]); 
- 
 
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
@@ -21,8 +18,8 @@ export default function PropertiesComponent() {
                  let state = [];
                  for(let index=0;index<data.value.length;index++){
                     let value = 0;
-                    if ( resProp.filter( element => element.property == data.value[index] )[0] ){
-                        value = resProp.filter( element => element.property == data.value[index] )[0].value 
+                    if ( resProp.filter( element => element.property === data.value[index] )[0] ){
+                        value = resProp.filter( element => element.property === data.value[index] )[0].value 
                     };
                     let property = { "property":data.value[index].Name,
                                      "value":value, 
@@ -32,7 +29,7 @@ export default function PropertiesComponent() {
                                      "commands":data.value[index].Commands};
                     state.push(property);
                  }
-                 return state.sort((a, b) => {if ( b.subscribed - a.subscribed == 0 ){
+                 return state.sort((a, b) => {if ( b.subscribed - a.subscribed === 0 ){
                                                   let nameA = a.property.toUpperCase();
                                                   let nameB = b.property.toUpperCase();
                                                   if ( nameA > nameB ) 
@@ -41,7 +38,7 @@ export default function PropertiesComponent() {
                                                        return -1;
                                                   else 
                                                        return 0; 
-                                                  return a.property - b.property }
+                                             }
                                              else 
                                                   return b.subscribed - a.subscribed });
        });
@@ -51,7 +48,7 @@ export default function PropertiesComponent() {
       setResProp(resProp => {
                  let state = [];
                  for(let index=0;index<resProp.length;index++){
-                     if (resProp[index].property == data.type) {
+                     if (resProp[index].property === data.type) {
                          let property = { "property":data.type,
                                           "value":data.value,
                                           "subscribed":subscribed.includes(data.type),
@@ -64,7 +61,7 @@ export default function PropertiesComponent() {
                      }
                  }
                     
-                return state.sort((a, b) => {if ( b.subscribed - a.subscribed == 0 ){
+                return state.sort((a, b) => {if ( b.subscribed - a.subscribed === 0 ){
                                                   let nameA = a.property.toUpperCase();
                                                   let nameB = b.property.toUpperCase();
                                                   if ( nameA > nameB ) 
@@ -73,7 +70,7 @@ export default function PropertiesComponent() {
                                                        return -1;
                                                   else 
                                                        return 0; 
-                                                  return a.property - b.property }
+                                                  }
                                              else 
                                                   return b.subscribed - a.subscribed});
         });
@@ -105,7 +102,7 @@ export default function PropertiesComponent() {
           subscribed.push( name );
       } else {
           if ( subscribed.includes(name)) {
-              subscribed = subscribed.filter( sub => sub != name );
+              subscribed = subscribed.filter( sub => sub !== name );
           }
       }   
   };

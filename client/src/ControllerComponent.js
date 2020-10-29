@@ -7,7 +7,7 @@ useEffect(() => {
     setChecked( checked => {
         return props.info.subscribed;
     });
-});
+},[props.info.subscribed]);
 
 let handleCheckboxChange = (cb) => {
     props.onSubscribe(cb);

@@ -3,7 +3,7 @@ import PropertyComponent from "./PropertyComponent";
 
 export default function Gridomponent(props) {
 
-let subscribeContainer = (props.info && props.info.filter( element => !element.subscribed ).length != 0)?
+let subscribeContainer = (props.info && props.info.filter( element => !element.subscribed ).length !== 0)?
        <div style={{"border":"5px solid #e0e0e0",
                         "boxSizing":"borderBox",
                         "padding":"16px",

@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import PropertiesComponent from "./PropertiesComponent";
-import GaugeComponent from "./GaugeComponent";
 
 
 function App() {
-  const [response, setResponse] = useState("")
 
   return (
    <>

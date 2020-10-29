@@ -26,7 +26,7 @@ const dataArc = arc()
  .cornerRadius(1)
  ()
 
-let backBone =  (props.type=="linear")?
+let backBone =  (props.type==="linear")?
                    <><line x1={-0.9} x2={0.9} y1={0.5} y2={0.5} stroke="black" strokeWidth="0.012" />
                      <line y1={0.25} y2={0.75} 
                            x1={0} x2={0}
@@ -40,7 +40,7 @@ let backBone =  (props.type=="linear")?
 
 const ticks = [];
 
-if (props.type == "linear") {
+if (props.type === "linear") {
 for(let index=0; index < scale + 1; index++ ) {
      ticks.push(<><line y1={0.5-0.125}
                     x1={1.8/scale*index - 0.9} 
@@ -83,7 +83,7 @@ for ( let index=0; index < (numberOfTicks - 1)*sectionSize + 1; index++ ){
 }
 }
 
-let digitalValue =  (props.type=="linear")?
+let digitalValue =  (props.type==="linear")?
                     <text x={-0.5}
                     y={-.3}
                     style={{font: "0.3px sans-serif"}} textLength={1}>
