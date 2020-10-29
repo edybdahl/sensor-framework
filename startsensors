@@ -1,0 +1,5 @@
+#!/bin/bash 
+cd ~/git/sensor-framework
+lxterminal -e ./sensorclient
+lxterminal -e ./sensorserver
+$SHELL
