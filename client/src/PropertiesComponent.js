@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
 import GridComponent from "./GridComponent"; 
-
-const ENDPOINT = process.env.REACT_APP_URL || "http://192.168.4.49:4001";
+console.log(process.env.REACT_APP_URL);
+const ENDPOINT = process.env.REACT_APP_URL;
 var send = null;
 var sendCommand;
 var subscribed = [];

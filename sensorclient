@@ -1,4 +1,10 @@
 #!/bin/bash
+host=$(hostname -I)
+echo ${host}
+hostip=$(echo -e "${host}" | sed -e 's/[[:space:]]*$//')
+echo ${hostip}
+export REACT_APP_URL="http://${hostip}:4001"
+echo $(printenv REACT_APP_URL)
 cd ./client
 npm start
 $SHELL
