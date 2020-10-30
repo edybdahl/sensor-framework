@@ -36,6 +36,7 @@ port.setEncoding("UTF8");
 port.pipe(parser);
 parser.on('data', function(data) {
 //	console.log("data: " + data);
+        // this can be asyncd. 
         listeners.forEach(listener => {
 		listener(data);
         });
@@ -47,9 +48,11 @@ const pushCommand = function( command, value ) {
       console.log( "Command recieved" );
  //   port.write( "{command:"+command+"value:"+value+"}\n", (err) => {
  //        if (err) {
+                // could this be sent back the the source of the command. 
  //             return console.error('Error: ', err.message);
  //        }
-//        colsol.log('message written');
+          // This maybe set back as well. Command return. 
+//        console.log('message written');
 //    })  
 };
 

@@ -45,12 +45,13 @@ io.on("connection", (socket) => {
         socket.on("Command", data => {
              console.log( "data recieved" );
              console.log( data );
+             //should this be async.
              callLisener( data );
         });
 
 	subscribeData( pushProperties, "ProbeProperties" );
         // may need to subsribe to the previous connection list
-        // Ask the client which contols are checked 
+        // Ask the client which properties are subscrbed
         socket.emit("Subscribe",{});
 
         socket.on("Subscribed", data => {
