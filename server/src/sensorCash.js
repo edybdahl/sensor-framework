@@ -40,8 +40,9 @@ serial.subscribe( function( data ) {
                  if (propertyMap[key]){
                        key = propertyMap[key];
                  }
+                 //write to the database can be asyned
                  db.addData( key, value );
-       	         if ( cashe[key] == null || cashe[key] != value ) {
+        	 if ( cashe[key] == null || cashe[key] != value ) {
       			listeners.forEach(listener => {
 					listener(key,value);
         	        });

@@ -7,6 +7,8 @@ const viewListeners = {};
 sensorCashe.subscribe( function( type, value ) {
 //	console.log( "type: " + type + " value: " + value );
 	if ( dataListeners[type] != null ) {
+                // This can be async. But if the socket stuff is sync then it does not matter.
+                // however, there may be other types of liseners in the future.
 	        dataListeners[type].forEach( listener => {
 			listener( value, type );
 		});
@@ -16,6 +18,7 @@ sensorCashe.subscribe( function( type, value ) {
 const callLisener = ( event ) => {
    console.log( "router recieved" );
    console.log( event );
+   //should this be async.
    serial.callLisener( event );
 };
 
