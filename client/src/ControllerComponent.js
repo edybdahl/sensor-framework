@@ -7,13 +7,11 @@ useEffect(() => {
     setChecked( checked => {
         return props.info.subscribed;
     });
-},[props.info.subscribed]);
+});
 
 let handleCheckboxChange = (cb) => {
     props.onSubscribe(cb);
     setChecked(!checked);
-  //  let event = {"Command":"hi","Value":"there","type":"probCommand"};
-  //  props.onCommandEvent(event);
 };
 
 let handleCommand = (name) => {
