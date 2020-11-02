@@ -34,7 +34,7 @@ const float pi = 3.1416;
 OneWire ds(2);
 byte OneWireAddress[6][8];
 byte OneWireAddress1[8];
-int conversion[255];
+byte conversion[255];
 
 String inputString = "";       // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -47,20 +47,27 @@ volatile unsigned long _NextOnTime = ULONG_MAX;  //Next time to turn the triac o
                                                //initialized high so it doesn't start on
 //String PIDTempName = "";
 
-void setup(void)
-{
-  pinMode(PIN_POWER, OUTPUT);
-  pinMode(PIN_INTERRUPT, INPUT);
-  
-  for ( int index = 0; index < 255; index ++ ) {
-     float equation = 0.01; 
+//const static int convertion[] PROGMEM = conversionData();
+
+void convertionData() {
+    for ( int index = 0; index < 255; index ++ ) {
+     float equation = 0.10; 
      if ( index>=30) {
        float corrected = index -15*(index/255) + 15;
        float xvalue = (pi * corrected)/255;
        equation = 3.688*sqrt( xvalue/(2*pi) - sin(2*xvalue)/(4*pi) );
     }
-    conversion[index]=round(equation*100);
+    conversion[index]=round(equation*100) - 10;
   }
+}
+
+void setup(void)
+{
+  pinMode(PIN_POWER, OUTPUT);
+  pinMode(PIN_INTERRUPT, INPUT);
+// const static int convertion[] PROGMEM = conversionData(); 
+
+  convertionData();
     
   Serial.begin(115200);
   
@@ -219,10 +226,10 @@ void loop(void)
          float fStuff = docin["Value"];
          int inStuff = round(fStuff*100);
          int index=0;
-         while( inStuff > conversion[index] ){
+         while( inStuff > conversion[index] + 30){
             index++;
          }
-         _Output = (abs(inStuff-conversion[index-1]) > abs(inStuff-conversion[index]))?index:index-1;
+         _Output = (abs(inStuff-conversion[index-1] + 10) > abs(inStuff-conversion[index] + 10))?index:index-1;
       } else {
   //       PIDTempName = docin["Value"]["value"];
       }

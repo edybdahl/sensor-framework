@@ -14,7 +14,7 @@ useEffect(() => {
 
 for( let index=0; index < props.subscribedComponents.length; index++ ){
 if ( props.subscribedComponents[index].type == "Temperature" ){
-      let value = props.subscribedComponents[index].property;
+      let value = props.subscribedComponents[index].symName;
       let label = props.subscribedComponents[index].property;
       options.push( { value:value, label:label});
 }

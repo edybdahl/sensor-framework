@@ -21,6 +21,7 @@ serial.subscribe( function( data ) {
             if( key == "ProbeProperties"){   
                  properties  = dataObject[key];         
                  for (index = 0;index < properties.length;index++){
+                        properties[index].symName = properties[index].Name;
                         if (propertyMap[properties[index].Name]){
                              properties[index].Name = propertyMap[properties[index].Name];
                         }

@@ -22,6 +22,7 @@ export default function PropertiesComponent() {
                         value = resProp.filter( element => element.property === data.value[index] )[0].value 
                     };
                     let property = { "property":data.value[index].Name,
+                                     "symName":data.value[index].symName,
                                      "value":value, 
                                      "subscribed":subscribed.includes(data.value[index].Name),
                                      "type":data.value[index].Type,
@@ -50,6 +51,7 @@ export default function PropertiesComponent() {
                  for(let index=0;index<resProp.length;index++){
                      if (resProp[index].property === data.type) {
                          let property = { "property":data.type,
+                                          "symName":resProp[index].symName,
                                           "value":data.value,
                                           "subscribed":subscribed.includes(data.type),
                                           "type":resProp[index].type,
