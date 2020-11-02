@@ -10,7 +10,10 @@ export default function ProperyComponent(props) {
           <ValueComponent info={props.info} />
      </div>
      <div>
-          <ControllerComponent info={props.info} onCommandEvent={props.onCommandEvent} onSubscribe={props.onSubscribe} />
+          <ControllerComponent info={props.info} 
+                       onCommandEvent={props.onCommandEvent} 
+                       onSubscribe={props.onSubscribe}
+                       subscribedComponents={props.subscribedComponents} />
      </div>
   </>      
   );

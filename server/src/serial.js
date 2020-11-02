@@ -44,16 +44,17 @@ parser.on('data', function(data) {
         timeout = setTimeout(isTimedOut, 20000);
 });
 
-const pushCommand = function( command, value ) {
+const pushCommand = function( event ) {
       console.log( "Command recieved" );
- //   port.write( "{command:"+command+"value:"+value+"}\n", (err) => {
- //        if (err) {
+
+      port.write( JSON.stringify(event) + '\r\n' , (err) => {
+          if (err) {
                 // could this be sent back the the source of the command. 
- //             return console.error('Error: ', err.message);
- //        }
+                return console.error('Error: ', err.message);
+          }
           // This maybe set back as well. Command return. 
-//        console.log('message written');
-//    })  
+          console.log('message written');
+    })  
 };
 
 const isTimedOut = function () {
@@ -68,7 +69,7 @@ const callLisener = (event) => {
    console.log( "serial recieved" );
    console.log( event );
    if ( event.type == "probCommand" ) {
-       pushCommand( event.command, event.value );
+       pushCommand( event );
    } 
 }
 

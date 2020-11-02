@@ -11,12 +11,24 @@ export default function ValueComponent(props) {
 
   const units = {
                    "Temperature": String.fromCharCode(8451),
-                   "pH":" pH"
+                   "pH":" pH",
+                   "TempController":"A"+String.fromCharCode(9190)
                 };
   const types= {
                    "Temperature": "arc",
-                   "pH":"linear"
+                   "pH":"linear",
+                   "TempController":"arc"
                 };
+  const sectionSizes= {
+                   "Temperature": 10,
+                   "pH":10,
+                   "TempController":1                
+                }
+  const angles= {
+                   "Temperature": { "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
+                   "pH":{ "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
+                   "TempController":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) }               
+                }
   return (
      <>
      {props.info.subscribed?
@@ -31,7 +43,9 @@ export default function ValueComponent(props) {
                         min={props.info.metaData.Min} 
                         max={props.info.metaData.Max} 
                         unit={units[props.info.type]}
-                        type={types[props.info.type]} />
+                        type={types[props.info.type]} 
+                        sectionSize={sectionSizes[props.info.type]}
+                        angle={angles[props.info.type]} />
      </div>:""}
      {(props.info.subscribed && ADstate)?
      <div>

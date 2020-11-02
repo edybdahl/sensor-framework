@@ -14,7 +14,7 @@ try {
 }
 
 serial.subscribe( function( data ) {
-//	console.log( "subscribe data:" + data);
+	console.log( "subscribe data:" + data);
         try{
             let dataObject = JSON.parse(data);
             key = Object.keys(dataObject)[0];                

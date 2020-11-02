@@ -13,7 +13,10 @@ let subscribeContainer = (props.info && props.info.filter( element => !element.s
            </div> 
            {(props.info)?props.info.filter( element => !element.subscribed ).map( c =>
               <div>
-                <PropertyComponent info={c} onCommandEvent={props.onCommandEvent} onSubscribe={props.onSubscribe} />
+                <PropertyComponent info={c} 
+                        onCommandEvent={props.onCommandEvent}
+                        onSubscribe={props.onSubscribe}
+                        subscribedComponents={props.info.filter( element => element.subscribed )} />
               </div>)
            :""}
        </div>:"";
@@ -23,7 +26,10 @@ let subscribedContainers = (props.info)?props.info.filter( element => element.su
                         "boxSizing":"borderBox",
                         "padding":"16px",
                         "textAlign":"center"}}>
-              <PropertyComponent info={c} onCommandEvent={props.onCommandEvent} onSubscribe={props.onSubscribe} />
+              <PropertyComponent info={c} 
+                                 onCommandEvent={props.onCommandEvent}
+                                 onSubscribe={props.onSubscribe}
+                                 subscribedComponents={props.info.filter( element => element.subscribed )} />
            </div>)
        :"";
 

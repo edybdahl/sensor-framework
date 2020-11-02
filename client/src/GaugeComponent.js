@@ -4,25 +4,25 @@ import NumberFormat from "react-number-format";
 
 export default function GaugeComponent(props) {
 
-let sectionSize=10;
+let sectionSize=props.sectionSize;
 let scale = props.max - props.min;
 let percentage = (props.value - props.min)/scale;
 let numberOfTicks = scale/sectionSize + 1;
-let sliceSize = Math.PI*(3/2)/(numberOfTicks - 1);
-const offset = Math.PI*(1/4);
+let sliceSize = (props.angle.endAngle - props.angle.startAngle)/(numberOfTicks - 1);
+const offset = -props.angle.startAngle + Math.PI*(3/2);
 
 const backgroundArc = arc() 
  .innerRadius(0.95)
  .outerRadius(1)
- .startAngle(-Math.PI* 3 / 4)
- .endAngle(Math.PI *3 / 4)
+ .startAngle(props.angle.startAngle)
+ .endAngle(props.angle.endAngle)
  .cornerRadius(1)
  ()
 const dataArc = arc()
  .innerRadius(0.85)
  .outerRadius(0.90)
- .startAngle(-Math.PI* 3 / 4)
- .endAngle(Math.PI*3/2*percentage - Math.PI*3/4)
+ .startAngle(props.angle.startAngle)
+ .endAngle((props.angle.endAngle - props.angle.startAngle)*percentage + props.angle.startAngle)
  .cornerRadius(1)
  ()
 
@@ -69,15 +69,24 @@ for(let index=0; index < numberOfTicks; index++ ) {
                     stroke="black" strokeWidth="0.012" />
               <text x={-0.60*Math.cos(sliceSize * index - offset) - 0.02}
                     y={-0.60*Math.sin(sliceSize * index - offset) + 0.02}         
-                    style={{font: "0.05px sans-serif"}} >{(index + props.min/sectionSize)*10}</text></>
+                    style={{font: "0.05px sans-serif"}} >{(index + props.min/sectionSize)*sectionSize}</text></>
     );
 }
 
-for ( let index=0; index < (numberOfTicks - 1)*sectionSize + 1; index++ ){            
-    ticks.push(<line y1={-0.90*Math.sin(sliceSize/sectionSize * index - offset)}
-                    x1={-0.90*Math.cos(sliceSize/sectionSize * index - offset)} 
-                    y2={-1*Math.sin(sliceSize/sectionSize * index - offset)} 
-                    x2={-1*Math.cos(sliceSize/sectionSize * index - offset)} 
+for ( let index=0; index < (numberOfTicks - 1)*2 + 1; index++ ){            
+    ticks.push(<line y1={-0.85*Math.sin(sliceSize/2 * index - offset)}
+                    x1={-0.85*Math.cos(sliceSize/2 * index - offset)} 
+                    y2={-1*Math.sin(sliceSize/2 * index - offset)} 
+                    x2={-1*Math.cos(sliceSize/2 * index - offset)} 
+                    stroke="black" strokeWidth="0.012" />
+    );
+}
+
+for ( let index=0; index < (numberOfTicks - 1)*10 + 1; index++ ){            
+    ticks.push(<line y1={-0.90*Math.sin(sliceSize/10 * index - offset)}
+                    x1={-0.90*Math.cos(sliceSize/10 * index - offset)} 
+                    y2={-1*Math.sin(sliceSize/10 * index - offset)} 
+                    x2={-1*Math.cos(sliceSize/10 * index - offset)} 
                     stroke="black" strokeWidth="0.012" />
     );
 }
@@ -125,5 +134,5 @@ let digitalValue =  (props.type==="linear")?
 }
 
 GaugeComponent.defaultProps = {
-min:-55 ,max:125,value:99.99,type:"linear"
+min:-55 ,max:125,value:99.99,type:"linear",sectionSize:10,startAngle:-Math.PI*3/4, endAngle:Math.PI*3/4
 };

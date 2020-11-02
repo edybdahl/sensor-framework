@@ -1,5 +1,5 @@
 #include <ArduinoJson.h>
-//#include "Wire.h";
+//#include "Wi_ZeroCrossActive _ZeroCrossActive re.h";
 #include <OneWire.h> 
 
 #define ULONG_MAX 4294967295
@@ -7,23 +7,68 @@
 #define OneWireDelay 1000
 int selection = 0;
 
+//
+// Pins
+//
+
+#define PIN_POWER 4        //Pin that controls the triac
+// #define PIN_STATUS 13      //Pin that controls the general status LED
+#define PIN_ZEROCROSS 1    //Pin with the zero-cross interrupt, 1 = pin 3
+#define PIN_INTERRUPT 3    //Actual pin with the zero-cross
+
+//
+// Power Control
+//
+
+volatile byte _DimLevel = 0;      //The dimming on the control, 255 - Output
+                                //Larger value --> less power
+
+#define DIM_DELAY 30  //us - Ideally ~32.5 us, but interrupt overhead
+                      //forces this to be smaller to prevent overlapping
+                      //execution cycles
+
+volatile byte _Output = 29;                     
+
+const float pi = 3.1416;
+
 OneWire ds(2);
 byte OneWireAddress[6][8];
 byte OneWireAddress1[8];
+int conversion[255];
 
-String inputString = "";         // a string to hold incoming data
+String inputString = "";       // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 
 volatile unsigned long _TemperatureAvailable = ULONG_MAX;  //When the temperature reading will
 
+volatile unsigned long _ZeroCrossActive = 0;
+
+volatile unsigned long _NextOnTime = ULONG_MAX;  //Next time to turn the triac on,
+                                               //initialized high so it doesn't start on
+//String PIDTempName = "";
+
 void setup(void)
 {
+  pinMode(PIN_POWER, OUTPUT);
+  pinMode(PIN_INTERRUPT, INPUT);
   
+  for ( int index = 0; index < 255; index ++ ) {
+     float equation = 0.01; 
+     if ( index>=30) {
+       float corrected = index -15*(index/255) + 15;
+       float xvalue = (pi * corrected)/255;
+       equation = 3.688*sqrt( xvalue/(2*pi) - sin(2*xvalue)/(4*pi) );
+    }
+    conversion[index]=round(equation*100);
+  }
+    
   Serial.begin(115200);
   
+  attachInterrupt(PIN_ZEROCROSS, Cross, RISING);
+  
    // reserve 200 bytes for the inputString:
- // inputString.reserve(200); 
-  //OneWireSearch();
+   inputString.reserve(50);
+ //  PIDTempName.reserve(15);
 
 }
 
@@ -43,28 +88,6 @@ bool OneWireSearch()
   ds.reset();
   return true;
 }
-
-/*
-  SerialEvent occurs whenever a new data comes in the
- hardware serial RX.  This routine is run between each
- time loop() runs, so using delay inside loop can delay
- response.  Multiple bytes of data may be available.
- */
-void serialEvent() {
-  while (Serial.available()) {
-    // get the new byte:
-    char inChar = (char)Serial.read();
-    // add it to the inputString:
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag
-    // so the main loop can do something about it:
-    if (inChar == '\n') {
-      stringComplete = true;
-    }
-  }
-}
-
-
 
 //Start the read of the current temperature
 void OneWireStartRead()
@@ -136,8 +159,82 @@ float OneWireFinishRead()
   return tempc;  
 }
 
+void Cross()
+{
+  _ZeroCrossActive = micros() + 16666;
+   //Below a level of 30, the delay becomes too long and starts to cross into
+  //the next execution cycle.  Below this point the heat rate is small so
+  //there is no difference by keeping the triac off.
+  //if(_DimLevel > 30)
+    _NextOnTime = micros() + (DIM_DELAY * _DimLevel);
+}
+
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs, so using delay inside loop can delay
+ response.  Multiple bytes of data may be available.
+ */
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+}
+
 void loop(void)
 {
+  if (_Output < 30 )
+  {
+    digitalWrite(PIN_POWER, LOW);
+  }
+  else if(_NextOnTime <= micros())    //In the control range
+  {
+    //The time to start the triac is controlled by the zero-interrupt
+    //Dimming function (see below)
+
+    //Turn the AC on
+    digitalWrite(PIN_POWER, HIGH);
+    //Small delay to allow the pin to set
+    delay(1);
+    //Turn the pin off, triac won't physically reset until next
+    //AC zero-cross
+    digitalWrite(PIN_POWER,LOW);
+
+    //Clear the scheduler
+    _NextOnTime = ULONG_MAX;
+  }
+  
+  if (stringComplete) {
+      StaticJsonDocument<64> docin;     
+      deserializeJson(docin,inputString);
+      if (docin["Command"] = "heat") {
+         float fStuff = docin["Value"];
+         int inStuff = round(fStuff*100);
+         int index=0;
+         while( inStuff > conversion[index] ){
+            index++;
+         }
+         _Output = (abs(inStuff-conversion[index-1]) > abs(inStuff-conversion[index]))?index:index-1;
+      } else {
+  //       PIDTempName = docin["Value"]["value"];
+      }
+  //    serializeJson(docin, Serial);    
+   //   Serial.println();
+      inputString = "";
+      stringComplete = false;
+  }
+
+   //Invert the PID output to a dimming level
+   _DimLevel = 255 - _Output;
+  
   static unsigned long _Writeout = millis();
   static int interval = 0;
   if(millis()-_Writeout > interval) 
@@ -147,7 +244,7 @@ void loop(void)
     OneWireSearch(); 
     
     int index = 0;
-    StaticJsonDocument<1024> doc;
+    StaticJsonDocument <256> doc;
     JsonArray properties = doc.createNestedArray("ProbeProperties");
     while( OneWireAddress[index][0] !=0 && index < 5)
     {  
@@ -164,8 +261,36 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = -55;
          metaData["Max"] = 125;
-   
+    //     if (PIDTempName == value) {
+    //        JsonArray commands = property.createNestedArray("Commands");
+    //        JsonObject command1 = commands.createNestedObject(); 
+   //         command1["Name"]="setPID";
+    //        command1["type"]="text";             
+     //    }
+  //        JsonArray commands = property.createNestedArray("Commands");
+     //    JsonObject command1 = commands.createNestedObject(); 
+    //     command1["Name"]="Callibrate";
+   //      command1["type"]="Event";
+   //     JsonObject command2 = commands.createNestedObject();    
+   //      command2["Name"]="heat";
+   //      command2["type"]="dropDown";      
+         
          index++;     
+    }
+    if (_ZeroCrossActive >= micros()){
+         JsonObject property = properties.createNestedObject();       
+         property["Name"] = "HeatController";
+         property["Type"] = "TempController";
+         JsonObject metaData = property.createNestedObject("MetaData");
+         metaData["Min"] = 0;
+         metaData["Max"] = 3;  
+         JsonArray commands = property.createNestedArray("Commands");
+         JsonObject command1 = commands.createNestedObject(); 
+         command1["Name"]="heat";
+         command1["type"]="text";
+         JsonObject command2 = commands.createNestedObject();    
+         command2["Name"]="tempControl";
+         command2["type"]="dropDown";         
     }
     serializeJson(doc, Serial);
     Serial.println();   
@@ -173,9 +298,26 @@ void loop(void)
     selection = 0;
     OneWireStartRead();
   }
+  static unsigned long _ampsWrite = millis();
+  static int vinterval = 1000;
+  if((_ZeroCrossActive >= micros()) && (millis()-_ampsWrite > vinterval)){
+    _ampsWrite = millis();
+     StaticJsonDocument <32> prop;
+    String key = "HeatController";
+    float equation = 0.01; 
+      if (_Output>=30) {
+     float corrected = _Output -14*(_Output/255) + 14;
+     float xvalue = (pi * corrected)/255;
+     equation = 3.688*sqrt( xvalue/(2*pi) - sin(2*xvalue)/(4*pi) );
+   }
+    float out =  conversion[_Output]/100.00;
+    prop[key] = out;
+    serializeJson(prop, Serial);
+    Serial.println();     
+  }
   if(millis()>= _TemperatureAvailable)
   { 
-    StaticJsonDocument<512> property;
+    StaticJsonDocument<32> property;
     String key = "Temp";
     for (int i=0; i<8; i++)
     { 
