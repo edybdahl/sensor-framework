@@ -45,7 +45,8 @@ export default function ValueComponent(props) {
                         unit={units[props.info.type]}
                         type={types[props.info.type]} 
                         sectionSize={sectionSizes[props.info.type]}
-                        angle={angles[props.info.type]} />
+                        angle={angles[props.info.type]}
+                        tempSet={props.info.metaData.PIDTemp} />
      </div>:""}
      {(props.info.subscribed && ADstate)?
      <div>

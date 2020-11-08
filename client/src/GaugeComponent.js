@@ -90,6 +90,18 @@ for ( let index=0; index < (numberOfTicks - 1)*10 + 1; index++ ){
                     stroke="black" strokeWidth="0.012" />
     );
 }
+
+if ( props.tempSet ) {
+      let tsPercentage = (props.tempSet - props.min)/scale;
+      let tsAngle = (props.angle.endAngle - props.angle.startAngle)*tsPercentage
+      ticks.push(<line y1={-0.50*Math.sin(tsAngle - sliceSize*3)}
+                    x1={-0.50*Math.cos(tsAngle  - sliceSize*3)} 
+                    y2={-1*Math.sin(tsAngle  - sliceSize*3)} 
+                    x2={-1*Math.cos(tsAngle  - sliceSize*3)} 
+                    stroke="red" strokeWidth="0.012" />
+    );
+}
+
 }
 
 let digitalValue =  (props.type==="linear")?

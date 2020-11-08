@@ -18,8 +18,8 @@ export default function PropertiesComponent() {
                  let state = [];
                  for(let index=0;index<data.value.length;index++){
                     let value = 0;
-                    if ( resProp.filter( element => element.property === data.value[index] )[0] ){
-                        value = resProp.filter( element => element.property === data.value[index] )[0].value 
+                    if ( resProp.filter( element => element.property === data.value[index].Name )[0] ){
+                        value = resProp.filter( element => element.property === data.value[index].Name )[0].value 
                     };
                     let property = { "property":data.value[index].Name,
                                      "symName":data.value[index].symName,

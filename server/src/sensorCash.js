@@ -26,7 +26,7 @@ serial.subscribe( function( data ) {
                              properties[index].Name = propertyMap[properties[index].Name];
                         }
                  }
-                 if ( cashe[key] == null || cashe[key].length != properties.length ) {
+                 if ( cashe[key] == null || cashe[key] != properties ) {
                         listeners.forEach(listener => {
                               listener(key,properties);
                         });

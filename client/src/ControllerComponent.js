@@ -51,6 +51,7 @@ let handleChange = (name,selected) => {
      <Select options={options}
              onChange={(e) => handleChange(c.Name,e)}
              value={selected}
+             isSearchable={false}
               />
      :<div>
         <input type="text" 
