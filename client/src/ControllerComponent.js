@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import Slider from 'react-input-slider';
 
 export default function ControllerComponent(props) {
 const [checked, setChecked] = useState(props.info.subscribed); 
 const [selected, setSelected] = useState(null); 
+const [state, setState] = useState({ x: 0.0 });
+
 
 let options = [];
 
@@ -53,7 +56,14 @@ let handleChange = (name,selected) => {
              value={selected}
              isSearchable={false}
               />
-     :<div>
+     :<div>  <Slider
+        axis="x"
+        xstep={0.01}
+        xmin={0}
+        xmax={2.6}
+        x={state.x}
+        onChange={({ x }) => setState({ x: parseFloat(x.toFixed(2)) })}
+      />
         <input type="text" 
              name={c.Name}
              onChange={(e) => handleCommand(c.Name,e)} />
