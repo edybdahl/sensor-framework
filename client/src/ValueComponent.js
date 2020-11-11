@@ -50,7 +50,9 @@ export default function ValueComponent(props) {
      </div>:""}
      {(props.info.subscribed && ADstate)?
      <div>
-         <DigitalComponent value={props.info.value} unit={units[props.info.type]} />
+         <DigitalComponent value={props.info.value} 
+                           tempSet={props.info.metaData.PIDTemp} 
+                           unit={units[props.info.type]} />
      </div>:""}
      </>
   );

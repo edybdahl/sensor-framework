@@ -1,5 +1,6 @@
 const serial = require("./serial.js");
 const db = require("./db.js");
+const conversionHook = require("./conversionHook"); 
 const fs = require('fs');
 
 let cashe = {};
@@ -12,6 +13,9 @@ try {
   console.log( 'no file');
   console.log(e); 
 }
+conversionHook.init();
+conversionHook.conFunc("HeatController",150);
+conversionHook.invConFunc("Heat",1.25);
 
 serial.subscribe( function( data ) {
 	console.log( "subscribe data:" + data);
@@ -36,8 +40,23 @@ serial.subscribe( function( data ) {
                  if ( properties.length == 0 ) {
                        cashe = {};
                  }
+           } else if ( key == "ProbePropertiesUpdate" ){
+                 let updateProperty = dataObject[key];
+                 updateProperty[0].symName = updateProperty[0].Name;
+                 if (propertyMap[updateProperty[0].Name]){
+                      updateProperty[0].Name = propertyMap[updateProperty[0].Name];
+                 }
+             //    console.log(updateProperty[0]);
+                 let probeProperties = cashe["ProbeProperties"];
+                 let newProbeProperties =  probeProperties.filter( property => property.Name !== updateProperty[0].Name );
+                 newProbeProperties.push(updateProperty[0]);
+                 cashe["ProbeProperties"] = newProbeProperties;
+            //     console.log(newProbeProperties);
+                 listeners.forEach(listener => {
+                      listener("ProbeProperties",newProbeProperties);
+                 });
            } else if ( key != "" ){
-                 value = dataObject[key];
+                 value = conversionHook.conFunc(key,dataObject[key]);
                  if (propertyMap[key]){
                        key = propertyMap[key];
                  }
@@ -53,6 +72,11 @@ serial.subscribe( function( data ) {
 	    }
         } catch(e) {};
 });
+ 
+const conversion = (event) => {
+      event.Value = conversionHook.invConFunc(event.Command,event.Value);   
+      return event; 
+};
 
 const subscribe = (listener) => {
 	listeners.push(listener);
@@ -68,5 +92,5 @@ const getCasheValue = (key) => {
 };
 
 module.exports = {
-	subscribe, unsubscribe, getCasheValue
+	subscribe, unsubscribe, getCasheValue, conversion
 };

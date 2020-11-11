@@ -3,9 +3,9 @@ import {arc} from "d3-shape";
 import NumberFormat from "react-number-format";
 
 export default function GaugeComponent(props) {
-
 let sectionSize=props.sectionSize;
 let scale = props.max - props.min;
+scale = Math.ceil(scale/sectionSize)*sectionSize;
 let percentage = (props.value - props.min)/scale;
 let numberOfTicks = scale/sectionSize + 1;
 let sliceSize = (props.angle.endAngle - props.angle.startAngle)/(numberOfTicks - 1);
@@ -91,7 +91,7 @@ for ( let index=0; index < (numberOfTicks - 1)*10 + 1; index++ ){
     );
 }
 
-if ( props.tempSet ) {
+if ( props.tempSet != null ) {
       let tsPercentage = (props.tempSet - props.min)/scale;
       let tsAngle = (props.angle.endAngle - props.angle.startAngle)*tsPercentage
       ticks.push(<line y1={-0.50*Math.sin(tsAngle - sliceSize*3)}
@@ -116,7 +116,8 @@ let digitalValue =  (props.type==="linear")?
                                 renderText={value => <>{value}</>}/>
                     </text>
                     :
-                    <><text x={-0.35}
+                    <>
+                    <text x={-0.35}
                     y={0.1}
                     style={{font: "0.3px sans-serif"}} textLength={0.70}>
                          <NumberFormat displayType="text" 
@@ -125,15 +126,25 @@ let digitalValue =  (props.type==="linear")?
                                 value={props.value} 
                                 renderText={value => <>{value}</>}/>
                    </text>
-.                  <text x={-0.15}
+                   <text x={-0.15}
                     y={0.4}
                     style={{font: "0.15px sans-serif"}} textLength={0.30}>
                         <NumberFormat displayType="text" 
                                 suffix={props.unit}
                                 value="1"
                                 renderText={value => <>{value}</>}/>
-                    </text></>
-
+                    </text>
+                    {( props.tempSet )?
+                    <text x={-0.35}
+                    y={0.8}
+                    style={{font: "0.3px sans-serif"}} fill="red" textLength={0.70}>
+                        <NumberFormat displayType="text" 
+                                decimalScale="2"   
+                                fixedDecimalScale="true" 
+                                value={props.tempSet} 
+                                renderText={value => <>{value}</>}/>
+                    </text>:""}
+                    </>
   return (
       <>  
           <svg width="9em" viewBox={[-1,-1,2,2].join(" ")} >            

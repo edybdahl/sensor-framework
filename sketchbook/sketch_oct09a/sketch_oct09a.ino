@@ -34,7 +34,6 @@ const float pi = 3.1416;
 OneWire ds(2);
 byte OneWireAddress[6][8];
 byte OneWireAddress1[8];
-byte conversion[255];
 
 String inputString = "";       // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -47,28 +46,14 @@ volatile unsigned long _NextOnTime = ULONG_MAX;  //Next time to turn the triac o
                                                  //initialized high so it doesn't start on
 String PIDTempName = "";
 float PIDTemp = 0;
+bool PIDOn = false;
 
 //const static int convertion[] PROGMEM = conversionData();
-
-void convertionData() {
-    for ( int index = 0; index < 255; index ++ ) {
-     float equation = 0.10; 
-     if ( index>=30) {
-       float corrected = index -15*(index/255) + 15;
-       float xvalue = (pi * corrected)/255;
-       equation = 3.688*sqrt( xvalue/(2*pi) - sin(2*xvalue)/(4*pi) );
-    }
-    conversion[index]=round(equation*100) - 10;
-  }
-}
 
 void setup(void)
 {
   pinMode(PIN_POWER, OUTPUT);
   pinMode(PIN_INTERRUPT, INPUT);
-// const static int convertion[] PROGMEM = conversionData(); 
-
-  convertionData();
     
   Serial.begin(115200);
   
@@ -77,7 +62,6 @@ void setup(void)
    // reserve 200 bytes for the inputString:
    inputString.reserve(50);
    PIDTempName.reserve(50);
-
 }
 
 bool OneWireSearch()
@@ -196,8 +180,7 @@ volatile long _OutputOneAgo = 0;
 volatile float _ErrorCurrent = 0;
 volatile float _ErrorOneAgo = 0;
 
-volatile bool _ReinitHistory = true;  //Flag to indicate the history is invalid and needs to be initialized,
-                                    //should lead to faster control action when modes are changed
+volatile bool _ReinitHistory = true;  //Flag to indicate the history is invalid and ne changed
 
 volatile float _TemperatureCurrent = -1;  //Current temperature measurement (°F)
 
@@ -225,12 +208,13 @@ void PID() {
         _ErrorCurrent = PIDTemp - _TemperatureCurrent;
   
         //Calculate the PID action and scale to the appropriate range
-        _Output = max(11, min(CalcPIDOutput(), 255));
+        _Output = max(11, min(CalcPIDOutput(), 254));
   
         //Shift the historical PV/OP/error values
         _TemperatureTwoAgo = _TemperatureOneAgo;
         _TemperatureOneAgo = _TemperatureCurrent;
         _OutputOneAgo = _Output;
+
   
         _ErrorOneAgo = _ErrorCurrent;
   
@@ -278,8 +262,10 @@ void serialEvent() {
   }
 }
 
+
 void loop(void)
 {
+  StaticJsonDocument <450> doc;
   if (_Output < 30 )
   {
     digitalWrite(PIN_POWER, LOW);
@@ -302,34 +288,82 @@ void loop(void)
   }
   
   if (stringComplete) {
-      StaticJsonDocument<100> docin;     
+      StaticJsonDocument<100> docin;    
+      docin.clear(); 
       deserializeJson(docin,inputString);
+      bool sendUpdate = false;
+      bool sendNothing = false;
+      bool sendNothingOld = false;
+      String oldPIDTempName = "";
       if (docin["Command"] == "heat") {
-         float fStuff = docin["Value"];
-         int inStuff = round(fStuff*100);
-         int index=0;
-         if ( inStuff >= 30 ) {
-            while( inStuff > conversion[index] + 10){
-               index++;
-            }
-            _Output = (abs(inStuff-conversion[index-1] + 10) > abs(inStuff-conversion[index] + 10))?index:index-1;
-         }
-         else {
-            _Output = 29;
+         if (!PIDOn) {
+            _Output = docin["Value"];
+             doc.clear();
+             String key = "HeatController";
+             doc[key] = _Output;
+             serializeJson(doc, Serial);
+             Serial.println();     
          }
       } else if (docin["Command"] == "tempControl") {
+           oldPIDTempName = String(PIDTempName);
            PIDTempName = "";
            serializeJson(docin["Value"]["value"],PIDTempName);
            PIDTempName = PIDTempName.substring(1,PIDTempName.length() -1);
+           PIDOn = false;
+           PIDTemp = 0;
+           sendUpdate = true;
+           if ( PIDTempName == "" ) {
+               sendNothing = true;
+           } else if ( oldPIDTempName != "" ) {
+               sendNothingOld = true;
+           }
       } else if (docin["Command"] == "setPID") {
            PIDTemp = docin["Value"];
+           sendUpdate = true;
+      } else if  (docin["Command"] == "PID") {
+           PIDOn = docin["Value"];
+      }
+     if ( sendUpdate == true ) {
+         doc.clear();
+         JsonArray properties = doc.createNestedArray("ProbePropertiesUpdate");   
+         JsonObject property = properties.createNestedObject();
+         if ( sendNothing ) {
+            property["Name"] = oldPIDTempName;
+         } else {
+            property["Name"] = PIDTempName;
+         }
+         property["Type"] = "Temperature";  
+         JsonObject metaData = property.createNestedObject("MetaData");
+         metaData["Min"] = -55;
+         metaData["Max"] = 125;
+         if ( !sendNothing ) {
+           metaData["PIDTemp"] = PIDTemp;
+           JsonArray commands = property.createNestedArray("Commands");
+           JsonObject command1 = commands.createNestedObject(); 
+           command1["Name"]="setPID";
+           command1["type"]="slider";  
+           JsonObject command2 = commands.createNestedObject();    
+           command2["Name"]="PID";
+           command2["type"]="button";   
+         }   
+         serializeJson(doc, Serial);
+         Serial.println();                     
+      }
+      if ( sendNothingOld == true ) {
+         doc.clear();
+         JsonArray properties = doc.createNestedArray("ProbePropertiesUpdate");   
+         JsonObject property = properties.createNestedObject();
+         property["Name"] = oldPIDTempName;
+         property["Type"] = "Temperature";  
+         JsonObject metaData = property.createNestedObject("MetaData");
+         metaData["Min"] = -55;
+         metaData["Max"] = 125;
+         serializeJson(doc, Serial);
+         Serial.println();                     
       }
       inputString = "";
       stringComplete = false;
-  }
-
-   //Invert the PID output to a dimming level
-   _DimLevel = 255 - _Output;
+   }
   
   static unsigned long _Writeout = millis();
   static int interval = 0;
@@ -340,7 +374,7 @@ void loop(void)
     OneWireSearch(); 
     
     int index = 0;
-    StaticJsonDocument <300> doc;
+    doc.clear();
     JsonArray properties = doc.createNestedArray("ProbeProperties");
     while( OneWireAddress[index][0] !=0 && index < 5)
     {  
@@ -361,17 +395,12 @@ void loop(void)
             metaData["PIDTemp"] = PIDTemp;
             JsonArray commands = property.createNestedArray("Commands");
             JsonObject command1 = commands.createNestedObject(); 
-             command1["Name"]="setPID";
-             command1["type"]="text";             
-        }
-  //        JsonArray commands = property.createNestedArray("Commands");
-     //    JsonObject command1 = commands.createNestedObject(); 
-    //     command1["Name"]="Callibrate";
-   //      command1["type"]="Event";
-   //     JsonObject command2 = commands.createNestedObject();    
-   //      command2["Name"]="heat";
-   //      command2["type"]="dropDown";      
-         
+            command1["Name"]="setPID";
+            command1["type"]="slider";   
+            JsonObject command2 = commands.createNestedObject();    
+            command2["Name"]="PID";
+            command2["type"]="button";               
+         }
          index++;     
     }
     if (_ZeroCrossActive >= micros()){
@@ -380,14 +409,14 @@ void loop(void)
          property["Type"] = "TempController";
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = 0;
-         metaData["Max"] = 3;  
+         metaData["Max"] = 2.6;  
          JsonArray commands = property.createNestedArray("Commands");
          JsonObject command1 = commands.createNestedObject(); 
          command1["Name"]="heat";
-         command1["type"]="text";
+         command1["type"]="slider";
          JsonObject command2 = commands.createNestedObject();    
          command2["Name"]="tempControl";
-         command2["type"]="dropDown";         
+         command2["type"]="dropDown";   
     }
     serializeJson(doc, Serial);
     Serial.println();   
@@ -399,16 +428,15 @@ void loop(void)
   static int vinterval = 1000;
   if((_ZeroCrossActive >= micros()) && (millis()-_ampsWrite > vinterval)){
     _ampsWrite = millis();
-     StaticJsonDocument <32> prop;
+    doc.clear();
     String key = "HeatController";
-    float out =  (conversion[_Output] + 10)/100.00;
-    prop[key] = out;
-    serializeJson(prop, Serial);
+    doc[key] = _Output;
+    serializeJson(doc, Serial);
     Serial.println();     
   }
   if(millis()>= _TemperatureAvailable)
   { 
-    StaticJsonDocument<32> property;
+    doc.clear();
     String key = "Temp";
     for (int i=0; i<8; i++)
     { 
@@ -417,14 +445,20 @@ void loop(void)
         key = String( key + stringHEX );
     }               
     float value = OneWireFinishRead();
-    property[key] = value;   
-    serializeJson(property, Serial);
+    doc[key] = value;   
+    serializeJson(doc, Serial);
     Serial.println();     
-  
+    if (key == PIDTempName && PIDOn) {
+      _TemperatureCurrent = value;
+      PID();
+    }
     selection++;
     if ( OneWireAddress[selection][0] !=0 )
     {
        OneWireStartRead();
     }
   }
+
+  //Invert the PID output to a dimming level
+   _DimLevel = 255 - _Output;
 }

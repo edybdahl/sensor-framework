@@ -10,6 +10,8 @@ var subscribed = [];
 export default function PropertiesComponent() {
   const [resProp, setResProp] = useState([]);
 
+  var runSet = null;
+
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
     socket.on("Properties", data => {

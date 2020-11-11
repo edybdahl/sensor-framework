@@ -19,7 +19,7 @@ const callLisener = ( event ) => {
    console.log( "router recieved" );
    console.log( event );
    //should this be async.
-   serial.callLisener( event );
+   serial.callLisener(sensorCashe.conversion( event ));
 };
 
 const subscribeData = (listener, type) => {
