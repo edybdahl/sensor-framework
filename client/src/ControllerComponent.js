@@ -8,6 +8,8 @@ const [checked, setChecked] = useState(props.info.subscribed);
 
 let newOptions = [];
 
+newOptions.push({ value:"", label:"Nothing Selected"});
+
 for( let index=0; index < props.subscribedComponents.length; index++ ){
    if ( props.subscribedComponents[index].type == "Temperature" ){
         let value = props.subscribedComponents[index].symName;
@@ -30,63 +32,19 @@ useEffect(() => {
            commandExists = commands.filter(element => 
                element.name == props.info.commands[index].Name
            )
-           if ( props.info.commands[index].type == "dropDown" ) {
-               let selectedExists = [];
-               if ( commandExists.length == 1 && commandExists[0].value != null ) {
-                   selectedExists = newOptions.filter(element => 
-                        element.value == commandExists[0].value.value
-                   );
+           if ( commandExists.length != 0 ) {
+               command = commandExists[0]; 
+           } else {
+               let value = props.info.commands[index].value;
+               if (props.info.commands[index].type == "slider") {
+                   value = { x:value};
                }
-               let value = null;
-               if(selectedExists.length != 0 ) {
-                   value = commandExists[0].value;
-               } 
-                 else {
-                   if (commandExists.length != 0 && commandExists[0].value != null) {
-                       let event = {
-                          "Command":commandExists[0].name,
-                          "Value":{value:"",label:""},
-                          "type":"probCommand"};
-                       props.onCommandEvent(event);    
-                   }             
-               } 
                command.name = props.info.commands[index].Name;
                command.value = value;
                command.type = props.info.commands[index].type;
-           } else {
-               if ( commandExists.length != 0 ) {
-                   if ( props.info.subscribed ) {
-                       command = commandExists[0];
-                   } else {
-                       let value = null;
-                       if (commandExists[0].type == "slider") {
-                           value =  { x:0};
-                       } else if (commandExists[0].type == "button") {
-                           value = false;
-                       }
-                       let event = {
-                          "Command":commandExists[0].name,
-                          "Value":value.x,
-                          "type":"probCommand"};
-                       props.onCommandEvent(event);  
-                       command.name = props.info.commands[index].Name;
-                       command.value = value;
-                       command.type = props.info.commands[index].type; 
-                   }
-               } else {
-                   let value = null;
-                   if (props.info.commands[index].type == "slider") {
-                       value = { x:0};
-                   } else if (props.info.commands[index].type == "button") {
-                       value = false;
-                   }
-                   command.name = props.info.commands[index].Name;
-                   command.value = value;
-                   command.type = props.info.commands[index].type;
-               }
            }
            commandsState.push( command )
-      }
+        }
       }
       return commandsState; 
     });

@@ -29,6 +29,13 @@ serial.subscribe( function( data ) {
                         if (propertyMap[properties[index].Name]){
                              properties[index].Name = propertyMap[properties[index].Name];
                         }
+                        if (properties[index].Commands) {
+                             for (jndex = 0; jndex < properties[index].Commands.length; jndex++) {
+                                  properties[index].Commands[jndex].value = conversionHook.conFunc(     
+                                       properties[index].Commands[jndex].Name,
+                                       properties[index].Commands[jndex].value);                            
+                             }
+                        }
                  }
                  if ( cashe[key] == null || cashe[key] != properties ) {
                         listeners.forEach(listener => {

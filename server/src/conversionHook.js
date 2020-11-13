@@ -1,3 +1,14 @@
+const fs = require('fs');
+
+let propertyMap = {};
+try {
+  propertyMap = JSON.parse(fs.readFileSync('./propertyMap.json'));
+  console.log( propertyMap);
+} catch(e) {
+  console.log( 'no file');
+  console.log(e); 
+}
+
 const conversion = {};
 
 const initOutputToAmps = () => {
@@ -20,8 +31,16 @@ const init = () => {
 
 const conFunc = ( property, input ) => {
    let output = input;
-   if ( property == "HeatController" ) {
-      output = conversion[ input ];
+   if ( property == "HeatController" || property == "heat") {
+       output = conversion[ input ];
+   }
+   else if ( property == "tempControl" ){
+       let value = input;
+       let label =  "Nothing Selected";
+       if (propertyMap[input]) {
+           label = propertyMap[input];
+       }
+       output = {"value":value,"label":label};
    }
    console.log(output);
    return output;

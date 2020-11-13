@@ -294,6 +294,7 @@ void loop(void)
       bool sendUpdate = false;
       bool sendNothing = false;
       bool sendNothingOld = false;
+      bool sendSelectionChange = false; 
       String oldPIDTempName = "";
       if (docin["Command"] == "heat") {
          if (!PIDOn) {
@@ -312,16 +313,21 @@ void loop(void)
            PIDOn = false;
            PIDTemp = 0;
            sendUpdate = true;
-           if ( PIDTempName == "" ) {
-               sendNothing = true;
-           } else if ( oldPIDTempName != "" ) {
+           if ( PIDTempName == "") {
+               sendUpdate = false; 
+           }
+           if ( oldPIDTempName != "" ) {
                sendNothingOld = true;
            }
+           sendSelectionChange = true;
       } else if (docin["Command"] == "setPID") {
            PIDTemp = docin["Value"];
            sendUpdate = true;
       } else if  (docin["Command"] == "PID") {
            PIDOn = docin["Value"];
+           if ( PIDOn == false ) {
+               _Output = 29;
+           }
       }
      if ( sendUpdate == true ) {
          doc.clear();
@@ -336,16 +342,16 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = -55;
          metaData["Max"] = 125;
-         if ( !sendNothing ) {
-           metaData["PIDTemp"] = PIDTemp;
-           JsonArray commands = property.createNestedArray("Commands");
-           JsonObject command1 = commands.createNestedObject(); 
-           command1["Name"]="setPID";
-           command1["type"]="slider";  
-           JsonObject command2 = commands.createNestedObject();    
-           command2["Name"]="PID";
-           command2["type"]="button";   
-         }   
+         metaData["PIDTemp"]=PIDTemp;
+         JsonArray commands = property.createNestedArray("Commands");
+         JsonObject command1 = commands.createNestedObject(); 
+         command1["Name"]="setPID";
+         command1["value"]=PIDTemp;
+         command1["type"]="slider";  
+         JsonObject command2 = commands.createNestedObject();    
+         command2["Name"]="PID";
+         command2["value"]=PIDOn;
+         command2["type"]="button";   
          serializeJson(doc, Serial);
          Serial.println();                     
       }
@@ -360,6 +366,27 @@ void loop(void)
          metaData["Max"] = 125;
          serializeJson(doc, Serial);
          Serial.println();                     
+      }
+      if ( sendSelectionChange == true) {
+         doc.clear();
+         JsonArray properties = doc.createNestedArray("ProbePropertiesUpdate");   
+         JsonObject property = properties.createNestedObject();       
+         property["Name"] = "HeatController";
+         property["Type"] = "TempController";
+         JsonObject metaData = property.createNestedObject("MetaData");
+         metaData["Min"] = 0;
+         metaData["Max"] = 2.6;  
+         JsonArray commands = property.createNestedArray("Commands");
+         JsonObject command1 = commands.createNestedObject(); 
+         command1["Name"]="heat";
+         command1["value"]=_Output;
+         command1["type"]="slider";
+         JsonObject command2 = commands.createNestedObject();    
+         command2["Name"]="tempControl";
+         command2["value"]=PIDTempName;
+         command2["type"]="dropDown";           
+         serializeJson(doc, Serial);
+         Serial.println();     
       }
       inputString = "";
       stringComplete = false;
@@ -396,9 +423,11 @@ void loop(void)
             JsonArray commands = property.createNestedArray("Commands");
             JsonObject command1 = commands.createNestedObject(); 
             command1["Name"]="setPID";
+            command1["value"]=PIDTemp;
             command1["type"]="slider";   
             JsonObject command2 = commands.createNestedObject();    
             command2["Name"]="PID";
+            command2["value"]=PIDOn;
             command2["type"]="button";               
          }
          index++;     
@@ -413,9 +442,11 @@ void loop(void)
          JsonArray commands = property.createNestedArray("Commands");
          JsonObject command1 = commands.createNestedObject(); 
          command1["Name"]="heat";
+         command1["value"]=_Output;
          command1["type"]="slider";
          JsonObject command2 = commands.createNestedObject();    
          command2["Name"]="tempControl";
+         command2["value"]=PIDTempName;
          command2["type"]="dropDown";   
     }
     serializeJson(doc, Serial);
