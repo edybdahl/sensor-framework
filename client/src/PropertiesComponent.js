@@ -6,11 +6,10 @@ const ENDPOINT = process.env.REACT_APP_URL;
 var send = null;
 var sendCommand;
 var subscribed = [];
+var charted = []; 
 
 export default function PropertiesComponent() {
   const [resProp, setResProp] = useState([]);
-
-  var runSet = null;
 
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
@@ -20,13 +19,17 @@ export default function PropertiesComponent() {
                  let state = [];
                  for(let index=0;index<data.value.length;index++){
                     let value = 0;
+                    let values = [];
                     if ( resProp.filter( element => element.property === data.value[index].Name )[0] ){
                         value = resProp.filter( element => element.property === data.value[index].Name )[0].value 
+                        values = resProp.filter( element => element.property === data.value[index].Name )[0].values 
                     };
                     let property = { "property":data.value[index].Name,
                                      "symName":data.value[index].symName,
                                      "value":value, 
+                                     "values":values,
                                      "subscribed":subscribed.includes(data.value[index].Name),
+                                     "charted":charted.includes(data.value[index].Name),
                                      "type":data.value[index].Type,
                                      "metaData":data.value[index].MetaData,
                                      "commands":data.value[index].Commands};
@@ -52,10 +55,23 @@ export default function PropertiesComponent() {
                  let state = [];
                  for(let index=0;index<resProp.length;index++){
                      if (resProp[index].property === data.type) {
+                         let value = data.value; 
+                         let values = data.value; 
+                         if ( Array.isArray(data.value) ){
+                             values.forEach( element => element[0] = element[0]*1000 );
+                             value = resProp[index].value;
+                         } else {
+                             values = resProp[index].values;
+                             if (values.length > 0) {
+                                 values.push([Date.now(),value]);
+                             } 
+                         }                      
                          let property = { "property":data.type,
                                           "symName":resProp[index].symName,
-                                          "value":data.value,
+                                          "value":value,
+                                          "values":values,
                                           "subscribed":subscribed.includes(data.type),
+                                          "charted":charted.includes(data.type),
                                           "type":resProp[index].type,
                                           "metaData":resProp[index].metaData,
                                           "commands":resProp[index].commands};
@@ -84,6 +100,10 @@ export default function PropertiesComponent() {
         socket.emit("Subscribed",{"subscribed":subscribed});
     });
 
+    socket.on("Chart", data => {
+        socket.emit("Chart",{"charted": charted});
+    });
+
     send = (mes) => {socket.emit("Property",mes)};
 
     sendCommand = (event) => {socket.emit("Command",event)}
@@ -99,6 +119,7 @@ export default function PropertiesComponent() {
       let checked = cb.target.checked;
       let name = cb.target.name;
       send({
+          "type":"subscribe",
           "checked":checked,
           "property":name
       });
@@ -111,7 +132,24 @@ export default function PropertiesComponent() {
       }   
   };
 
+  let handleSHButton = (cb) => {
+      let checked = cb.charted;
+      let name = cb.name;
+      send({
+          "type":"charted",
+          "checked":checked,
+          "property":name
+      });
+      if ( checked ) {
+          charted.push( name );
+      } else {
+          if ( charted.includes(name)) {
+              charted = charted.filter( sub => sub !== name );
+          }
+      } 
+  };
+
   return (
-     <GridComponent info={resProp} onCommandEvent={handeCommandEvent} onSubscribe={handleCheckboxChange} />
+     <GridComponent info={resProp} onCommandEvent={handeCommandEvent} onCharted={handleSHButton} onSubscribe={handleCheckboxChange} />
   );
 }

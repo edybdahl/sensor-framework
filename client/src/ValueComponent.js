@@ -4,9 +4,16 @@ import DigitalComponent from "./DigitalComponent";
 
 export default function ValueComponent(props) {
   const [ADstate, setADState] = useState(true);
+  const [SHstate, setSHState] = useState(false);
 
-  let handleADchange = () => { 
+  let handleADchange = () => {
        setADState(!ADstate);
+  };
+
+  let handleSHchange = () => { 
+       props.onCharted({"name":props.info.property,
+                        "charted":!SHstate});
+       setSHState(!SHstate);
   };
 
   const units = {
@@ -36,6 +43,9 @@ export default function ValueComponent(props) {
      <button type="button" 
              name="switchDigital" 
              onClick={handleADchange} >{ADstate?"A":"D"}</button>
+     <button type="button" 
+             name="showChart" 
+             onClick={handleSHchange} >{SHstate?"H":"S"}</button>
      </div>:""}
      {(props.info.subscribed && !ADstate)?
      <div>

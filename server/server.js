@@ -4,7 +4,7 @@ const socketIo = require("socket.io");
 
 const port = process.env.PORT || 4001;
 const index = require("./routes/index");
-const {subscribeData, unsubscribeData, isSubscribedData, callLisener} = require("./src/routeData");
+const {subscribeData, unsubscribeData, isSubscribedData, callLisener, resetCommanding} = require("./src/routeData");
 
 const app = express();
 app.use(index);
@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
 		});
 	};
 
-	const pushValues = (newValue,retype) => {		
+	const pushValues = (newValue, retype) => {		
 		socket.emit( 'Values', { 
 			value: newValue,
                         type: retype
@@ -33,20 +33,30 @@ io.on("connection", (socket) => {
 	};
 
         socket.on("Property", data => {
+           if ( data.type == "subscribe" ){
              if ( data.checked ){
                 subscribeData( pushValues, data.property );
              } else {
                 pushValues( 0, data.property );
                 unsubscribeData( pushValues, data.property );
              }
-             console.log(data);
+           } else {
+              if ( data.checked ) {
+                  callLisener( {"Command":"getData",
+                                "Value":data.property,
+                                "type":"dbCommand"}, socket.id, pushValues );
+              } else {
+                  pushValues( [], data.property );
+              }
+           }
+           console.log(data);
         });
 
         socket.on("Command", data => {
              console.log( "data recieved" );
              console.log( data );
              //should this be async.
-             callLisener( data );
+             callLisener( data, socket.id, pushValues );
         });
 
 	subscribeData( pushProperties, "ProbeProperties" );
@@ -73,6 +83,7 @@ io.on("connection", (socket) => {
               unsubscribeData( pushValues, subscribedValue[index]);
           };
       };
+      resetCommanding();
   });
 
 });

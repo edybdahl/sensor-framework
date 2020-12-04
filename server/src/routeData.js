@@ -3,6 +3,7 @@ const serial = require("./serial.js");
 
 const dataListeners = {};
 const viewListeners = {};
+let commandingSocket = "";
 
 sensorCashe.subscribe( function( type, value ) {
 //	console.log( "type: " + type + " value: " + value );
@@ -15,12 +16,28 @@ sensorCashe.subscribe( function( type, value ) {
 	}
 })
 
-const callLisener = ( event ) => {
+const callLisener = ( event, socket, listener ) => {
    console.log( "router recieved" );
    console.log( event );
    //should this be async.
-   serial.callLisener(sensorCashe.conversion( event ));
+   if ( event.type == "resetCommand" ) {
+       sensorCashe.callListener( event, null);
+   }
+   else if ( event.type == "dbCommand" ) {
+       sensorCashe.callListener(event, listener);
+   } else {
+	   if ( commandingSocket == "" ) { 
+	       commandingSocket = socket;
+	   }
+	   if ( commandingSocket == socket ) {
+	      serial.callLisener(sensorCashe.conversion( event ));
+	   }
+   }
 };
+
+const resetCommanding = () => {
+   commandingSocket = "";
+}
 
 const subscribeData = (listener, type) => {
         if ( dataListeners[type] == null ) {
@@ -55,5 +72,6 @@ module.exports = {
 	subscribeData, 
         unsubscribeData,
         isSubscribedData,
-        callLisener
+        callLisener,
+        resetCommanding
 };

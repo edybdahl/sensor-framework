@@ -1,0 +1,11 @@
+[
+   { 
+     "Command":"PIDtuning",
+     "Value" : { 
+          "Kp": 38.4,
+          "ki": 2.56,
+          "kd": 576 
+      },
+     "type" : "probCommand"     
+   }
+]

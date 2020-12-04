@@ -7,7 +7,7 @@ export default function ProperyComponent(props) {
   return (
   <>
      <div>
-          <ValueComponent info={props.info} />
+          <ValueComponent info={props.info} onCharted={props.onCharted}/>
      </div>
      <div>
           <ControllerComponent info={props.info} 

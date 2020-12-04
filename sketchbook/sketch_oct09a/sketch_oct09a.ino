@@ -155,16 +155,9 @@ float OneWireFinishRead()
 // Control
 //
 
-#define CONTROL_FREQ 0          //How many times per minute to execute control
-int ControlCounter = CONTROL_FREQ;//Number of cycles since last control action,
-                                //initialized to the CONTROL_FREQ to ensure
-                                //immediate inital control action
-float _ControlFreq = 1;           //How often the control action is executed, in
-                                //multiples of OneWireNextRead
-                                //TODO: why not a constant?
-float K = 0.1;                    //Gain  0.043                  0.1
-float Ti = 150;                   //Integral (min)    102        152
-float Td = 0.45;                  //Derivative (min)   0.46      0.46
+float K = 2; //0.1;                    //Gain  0.043                  0.1
+float Ti = 5; //150;                   //Integral (min)    102        152
+float Td = 1;  //0.45;                  //Derivative (min)   0.46      0.46
 
 //
 // Historical Values
@@ -173,63 +166,36 @@ float Td = 0.45;                  //Derivative (min)   0.46      0.46
 //This implementation is simplier than using arrays
 
 volatile float _TemperatureOneAgo = -1;
-volatile float _TemperatureTwoAgo = -1;
-
-volatile long _OutputOneAgo = 0;
-
-volatile float _ErrorCurrent = 0;
-volatile float _ErrorOneAgo = 0;
 
 volatile bool _ReinitHistory = true;  //Flag to indicate the history is invalid and ne changed
 
-volatile float _TemperatureCurrent = -1;  //Current temperature measurement (°F)
+volatile float _TemperatureCurrent = -1;  //Current temperature measurement (°C)
 
-void PID() {
-    //Increment the control counter
-    ControlCounter++;
-  
-    //When the control counter is greater than/equal to the control
-    //frequency then a control action will be executed 
-    if(ControlCounter >= CONTROL_FREQ)
-    {
+volatile float interval = 7;
+
+volatile double  outputSum = 0;
+
+void PID2() {
         //If this is the first control action in AUTO, initialize the historical
         //values to prevent windup in the first action
         if(_ReinitHistory)
         {
-          _TemperatureOneAgo = _TemperatureCurrent;
-          _TemperatureTwoAgo = _TemperatureCurrent;  
-          
-          _OutputOneAgo = _Output;
-          
+          _TemperatureOneAgo = _TemperatureCurrent;  
+           outputSum = 0;  // _Output;       
           _ReinitHistory = false;
         }
   
         //Determine the current controller error
-        _ErrorCurrent = PIDTemp - _TemperatureCurrent;
+        double error = PIDTemp - _TemperatureCurrent;
+        double  _deltaTemo = _TemperatureCurrent - _TemperatureOneAgo; 
+        if ( error < 14 && error > -7 ){
+            outputSum += (Ti*interval* error);
+        } 
+        double result = K*error + 25 + outputSum - (Td/interval)*_deltaTemo;
   
         //Calculate the PID action and scale to the appropriate range
-        _Output = max(11, min(CalcPIDOutput(), 254));
-  
-        //Shift the historical PV/OP/error values
-        _TemperatureTwoAgo = _TemperatureOneAgo;
+        _Output = max(11, min(result, 254));     
         _TemperatureOneAgo = _TemperatureCurrent;
-        _OutputOneAgo = _Output;
-
-  
-        _ErrorOneAgo = _ErrorCurrent;
-  
-        //Reset the control counter
-        ControlCounter = 0;
-    }
-}
-
-//Calculate the PID equation change form, add it to the previous output to calculate
-//the new absolute output.  Type B: P on Error, I on Error, D on Input
-//
-//OP[k] = OP[k-1] + K * (e[k] - e[k-1]) + Ti * Freq * e[k] - Td/Freq * (PV[k] - 2 * PV[k-1] + PV[k-2])
-float CalcPIDOutput()
-{
-  return ((float)_OutputOneAgo - K*(_ErrorCurrent - _ErrorOneAgo) + Ti * (float)_ControlFreq * _ErrorCurrent) - Td / _ControlFreq * (_TemperatureCurrent - 2 * _TemperatureOneAgo + _TemperatureTwoAgo);
 }
 
 void Cross()
@@ -296,7 +262,11 @@ void loop(void)
       bool sendNothingOld = false;
       bool sendSelectionChange = false; 
       String oldPIDTempName = "";
-      if (docin["Command"] == "heat") {
+      if (docin["Command"] == "PIDtuning") {
+         K = docin["Value"]["Kp"];
+         Ti = docin["Value"]["Ki"];
+         Td = docin["Value"]["Kd"];
+      } else if (docin["Command"] == "heat") {
          if (!PIDOn) {
             _Output = docin["Value"];
              doc.clear();
@@ -342,6 +312,7 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = -55;
          metaData["Max"] = 125;
+         metaData["TimeInterval"] = 14000;
          metaData["PIDTemp"]=PIDTemp;
          JsonArray commands = property.createNestedArray("Commands");
          JsonObject command1 = commands.createNestedObject(); 
@@ -364,6 +335,7 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = -55;
          metaData["Max"] = 125;
+         metaData["TimeInterval"] = 14000;
          serializeJson(doc, Serial);
          Serial.println();                     
       }
@@ -376,6 +348,7 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = 0;
          metaData["Max"] = 2.6;  
+         metaData["TimeInterval"] = 2000;
          JsonArray commands = property.createNestedArray("Commands");
          JsonObject command1 = commands.createNestedObject(); 
          command1["Name"]="heat";
@@ -418,6 +391,7 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = -55;
          metaData["Max"] = 125;
+         metaData["TimeInterval"] = 14000;
          if (value == PIDTempName) {
             metaData["PIDTemp"] = PIDTemp;
             JsonArray commands = property.createNestedArray("Commands");
@@ -439,6 +413,7 @@ void loop(void)
          JsonObject metaData = property.createNestedObject("MetaData");
          metaData["Min"] = 0;
          metaData["Max"] = 2.6;  
+         metaData["TimeInterval"] = 2000;
          JsonArray commands = property.createNestedArray("Commands");
          JsonObject command1 = commands.createNestedObject(); 
          command1["Name"]="heat";
@@ -481,7 +456,7 @@ void loop(void)
     Serial.println();     
     if (key == PIDTempName && PIDOn) {
       _TemperatureCurrent = value;
-      PID();
+      PID2();
     }
     selection++;
     if ( OneWireAddress[selection][0] !=0 )
