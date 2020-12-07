@@ -3,7 +3,7 @@ const fs = require('fs');
 let propertyMap = {};
 try {
   propertyMap = JSON.parse(fs.readFileSync('./propertyMap.json'));
-  console.log( propertyMap);
+ // console.log( propertyMap);
 } catch(e) {
   console.log( 'no file');
   console.log(e); 
@@ -21,7 +21,7 @@ const initOutputToAmps = () => {
     }
     conversion[index]=equation;
   }
-  console.log(conversion);
+  //console.log(conversion);
 };
 
 
@@ -42,7 +42,7 @@ const conFunc = ( property, input ) => {
        }
        output = {"value":value,"label":label};
    }
-   console.log(output);
+   //console.log(output);
    return output;
 }
 
@@ -59,7 +59,7 @@ const invConFunc = ( command, input ) => {
            output = 29;
        }
     }
-   console.log(output);
+ //  console.log(output);
    return output;
 }
 

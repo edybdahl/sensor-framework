@@ -7,7 +7,7 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts'
 let touchTime = 0;
 let touchTimeCount = 0;
 let firstTime = true;
-let initialized = false;
+// let initialized = false;
 
 export default function ChartComponent(props) {
 const [state, setState] = useState({
@@ -28,7 +28,7 @@ let milliTime = timeFormat("%s");
 
 // This needs to be the largest of the time scales from each data set
 const xScale = scaleTime()
-  .domain([(state.shadowGridSelection[0][0]==0)?Date.now():state.shadowGridSelection[0][0],state.shadowGridSelection[1][0]])  
+  .domain([(state.shadowGridSelection[0][0]===0)?Date.now():state.shadowGridSelection[0][0],state.shadowGridSelection[1][0]])  
   .range([MARGIN.LEFT, WIDTH - MARGIN.LEFT]);
  
 const yScaleM = [];
@@ -39,7 +39,7 @@ for( let index=0; index<props.info.length; index++ ) {
   .range([HEIGHT - MARGIN.BOTTOM, MARGIN.TOP]);
   yScaleM.push(yScale);
 }
-if ( yScaleM.length == 0 ) {
+if ( yScaleM.length === 0 ) {
    yScaleM[0] = scaleLinear()
   .domain([0, 0])
   .range([HEIGHT - MARGIN.BOTTOM, MARGIN.TOP]);
@@ -56,7 +56,7 @@ useEffect(() => {
         firstTime = false; 
      }     
      let newBrushSelection = state.valueSelection?state.valueSelection.map(([x, y]) => [
-          (x==0)?MARGIN.LEFT:Math.round(xScale(x)),
+          (x===0)?MARGIN.LEFT:Math.round(xScale(x)),
           yScaleM[0](y)
         ]):null; 
      return { brushSelection: newBrushSelection,
@@ -78,7 +78,7 @@ let selectionMatrix = () => {
        }
    }
    lowerLeft.push( limit );
-   if ( props.info.length == 0 ) {
+   if ( props.info.length === 0 ) {
        lowerLeft.push(0); 
        upperRight.push(0);       
    } else {
@@ -106,7 +106,7 @@ let renderBrush = () => {
       // By default, getEventMouse returns [event.clientX, event.clientY]
       getEventMouse={event => {
           const {clientX, clientY} = event;
-          const {left,top,width,height} = svg.getBoundingClientRect();
+          const {left,top} = svg.getBoundingClientRect();
           return [clientX - left,clientY - top];
         }}
       brushType="2d" // "x"
@@ -131,10 +131,10 @@ let renderBrush = () => {
                      useBase: true
                      });         
                  } else {
-                     const {clientX, clientY} = sourceEvent;
-                     const {left,top,width,height} = svg.getBoundingClientRect();
-                     const [Ax, Ay] = [clientX - left,clientY - top];
-                     const [[X0,Y1],[X1,Y0]] = selection; 
+                     const {clientX} = sourceEvent;
+                     const {left} = svg.getBoundingClientRect();
+                     const Ax = clientX - left;
+                     const [[X0],[X1]] = selection; 
                      console.log( Ax );
                      console.log( selection );
                      if ( (Ax > X0) && Ax < ((X1 - X0)*(0.25) + X0)) { 
@@ -190,7 +190,7 @@ let renderBrush = () => {
 
 let getBrush = (x,y) => {
    let valueM = [];
-   let xValue = (x==MARGIN.LEFT)?0:parseInt(milliTime(xScale.invert(x)),10)*1000;
+   let xValue = (x===MARGIN.LEFT)?0:parseInt(milliTime(xScale.invert(x)),10)*1000;
    valueM.push( xValue );
    for ( let index = 0; index < yScaleM.length; index++ ) {
        valueM.push(yScaleM[index].invert(y));
@@ -340,7 +340,7 @@ const _renderData = () => {
           const value20 = [];
           let previoustime = 0;    
           for (let jndex=0;jndex<props.info[index].values.length;jndex++) {
-	      if (props.info[index].values[jndex][0] <= ((state.shadowGridSelection[0][0]==0)?Date.now():state.shadowGridSelection[0][0]) && 
+	      if (props.info[index].values[jndex][0] <= ((state.shadowGridSelection[0][0]===0)?Date.now():state.shadowGridSelection[0][0]) && 
 	          props.info[index].values[jndex][0] > state.shadowGridSelection[1][0] &&
 	          props.info[index].values[jndex][0] > previoustime) {
    	          value20.push(props.info[index].values[jndex]);
@@ -357,7 +357,7 @@ const _renderData = () => {
 	  {lines[0]?<path
 	    d={lines[0]+"V70H" + dataSize[0] + "Z"}
             fill="blue"
-            fill-opacity="25%"
+            fillOpacity="25%"
             strokeWidth=".5"
             stroke="blue"
 	  />:""}
@@ -374,9 +374,9 @@ const _renderData = () => {
  
 const renderLineChart = () => {
 let indata = [];
-const {brushSelection,valueSelection,shadowGridSelection} = state;
+const {valueSelection} = state;
 const [x1,x2,y1,y2,z1,z2] = valueSelection?
-         [(valueSelection[0][0]==0)?Date.now():valueSelection[0][0],
+         [(valueSelection[0][0]===0)?Date.now():valueSelection[0][0],
           valueSelection[1][0],
           valueSelection[1][1],
           valueSelection[0][1],
@@ -394,18 +394,19 @@ if (props.info.length > 0) {
 		       }
 		       indata.push(point);
 		   };
+                return true;
 	   });
    };
 };
 
 return (
-  (x1!=0)?<LineChart style={{"margin":"0 auto"}} width={900} height={200} data={indata} margin={{ top: 5, right: 40, bottom: 5, left:40 }}>
+  (x1!==0)?<LineChart style={{"margin":"0 auto"}} width={900} height={200} data={indata} margin={{ top: 5, right: 40, bottom: 5, left:40 }}>
     {props.info[0]?<Line yAxisId="left" type="monotone" dataKey={props.info[0].property} stroke="#8884d8" />:""}
     {props.info[1]?<Line yAxisId="right" type="monotone" dataKey={props.info[1].property} stroke="red" />:""}
     {(props.info[0] && props.info[0].metaData.PIDTemp)?<Line yAxisId="left" type="monotone" dataKey="tempSet" stroke="black" />:""} 
     {(props.info[1] && props.info[1].metaData.PIDTemp)?<Line yAxisId="right" type="monotone" dataKey="tempSet" stroke="black" />:""} 
     <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-    <XAxis dataKey="time" type="number" domain={[x1,x2]} tickFormatter={formatTime} reversed="true" />
+    <XAxis dataKey="time" type="number" domain={[x1,x2]} tickFormatter={formatTime} reversed={true} />
     <YAxis yAxisId="left" label={props.info[0]?{value:props.info[0].property, angle:-90, position:"insideLeft"}:{}} type="number" domain={[y1,y2]} 
          tickFormatter={(number) => { return Math.round(number*100)/100; }} />
     {props.info[1]?<YAxis yAxisId="right" label={props.info[1]?{value:props.info[1].property, angle:-90, position:"outsideRight"}:{}}
@@ -440,5 +441,4 @@ return (
 	  </div>
      </div>
 );
-
 }

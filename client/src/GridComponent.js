@@ -38,7 +38,7 @@ let subscribeContainer =
                <label>Subscribe</label>
            </div> 
            {(props.info)?props.info.filter( element => !element.subscribed ).map( c =>
-              <div>
+              <div key={c.property}>
                 <PropertyComponent info={c} 
                         onCommandEvent={props.onCommandEvent}
                         onSubscribe={props.onSubscribe}
@@ -49,7 +49,7 @@ let subscribeContainer =
        </div>;
 
 let subscribedContainers = (props.info)?props.info.filter( element => element.subscribed ).map( c =>
-           <div style={{"border":"5px solid #e0e0e0",
+           <div key={c.property} style={{"border":"5px solid #e0e0e0",
                         "boxSizing":"borderBox",
                         "padding":"16px",
                         "textAlign":"center"}}>

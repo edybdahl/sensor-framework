@@ -2,10 +2,10 @@ const SerialPort = require('serialport');
 
 SerialPort.list().then (ports => {
   ports.forEach(function(port) {
-    console.log("com name " + port.comName);
-    console.log("prod id " + port.pnpId);
-    console.log("manufacturer " + port.manufacturer);
-    console.log( port );
+   // console.log("com name " + port.comName);
+  //  console.log("prod id " + port.pnpId);
+  //  console.log("manufacturer " + port.manufacturer);
+  //  console.log( port );
   });
   open();
 });
@@ -45,7 +45,7 @@ parser.on('data', function(data) {
 });
 
 const pushCommand = function( event ) {
-      console.log( "Command recieved" );
+    //  console.log( "Command recieved" );
 
       port.write( JSON.stringify(event) + '\r\n' , (err) => {
           if (err) {
@@ -53,7 +53,7 @@ const pushCommand = function( event ) {
                 return console.error('Error: ', err.message);
           }
           // This maybe set back as well. Command return. 
-          console.log('message written');
+       //   console.log('message written');
     })  
 };
 
@@ -66,8 +66,8 @@ const isTimedOut = function () {
 };
 
 const callLisener = (event) => {
-   console.log( "serial recieved" );
-   console.log( event );
+  // console.log( "serial recieved" );
+  // console.log( event );
    if ( event.type == "probCommand" ) {
        pushCommand( event );
    } 

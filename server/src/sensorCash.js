@@ -9,9 +9,9 @@ let propertyMap = {};
 let tuningParameters = [];
 try {
   propertyMap = JSON.parse(fs.readFileSync('./propertyMap.json'));
-  console.log( propertyMap);
+ // console.log( propertyMap);
   tuningParameters = JSON.parse(fs.readFileSync('./tuningParameters.json'));
-  console.log( tuningParameters);
+ // console.log( tuningParameters);
   for (let index=0;index<tuningParameters.length;index++) {
     let command = tuningParameters[index];
     serial.callLisener(command);
@@ -59,7 +59,7 @@ serial.subscribe( function( data ) {
                         });
                  }
                  cashe[key]=properties;
-                 console.log( properties );
+             //    console.log( properties );
                  if ( properties.length == 0 ) {
                        cashe = {};
                  }
@@ -79,7 +79,7 @@ serial.subscribe( function( data ) {
                       listener("ProbeProperties",newProbeProperties);
                  });
            } else if ( key != "" ){
-                 console.log("there");
+          //       console.log("there");
                  value = conversionHook.conFunc(key,dataObject[key]);
                  if (propertyMap[key]){
                        key = propertyMap[key];
@@ -111,11 +111,11 @@ const hystoricDataCallBack = (type,value) => {
 }
 
 const callListener = (event, listener) => {
-   console.log( "sensorCash recieved" );
-   console.log( event );
+  // console.log( "sensorCash recieved" );
+  // console.log( event );
    if ( event.type == "resetCommand" ) {
       tuningParameters = JSON.parse(fs.readFileSync('./tuningParameters.json'));
-      console.log( tuningParameters);
+    //  console.log( tuningParameters);
       for (let index=0;index<tuningParameters.length;index++) {
           let command = tuningParameters[index];
           serial.callLisener(command);

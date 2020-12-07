@@ -15,10 +15,9 @@ const io = socketIo(server); // < Interesting!
 
 io.on("connection", (socket) => {
   console.log( "user connected: " + socket.id );
- // console.log( socket.client );
 
         const pushProperties = (newValue, retype) => {
-                console.log(newValue);
+            //    console.log(newValue);
 		socket.emit( 'Properties', { 
 			value: newValue,
                         type: retype
@@ -49,12 +48,12 @@ io.on("connection", (socket) => {
                   pushValues( [], data.property );
               }
            }
-           console.log(data);
+      //     console.log(data);
         });
 
         socket.on("Command", data => {
-             console.log( "data recieved" );
-             console.log( data );
+        //     console.log( "data recieved" );
+       //      console.log( data );
              //should this be async.
              callLisener( data, socket.id, pushValues );
         });
@@ -65,8 +64,8 @@ io.on("connection", (socket) => {
         socket.emit("Subscribe",{});
 
         socket.on("Subscribed", data => {
-             console.log( "*************" );    
-             console.log( data.subscribed );
+     //        console.log( "*************" );    
+     //        console.log( data.subscribed );
              for (let index=0; index < data.subscribed.length; index++) {
                  subscribeData( pushValues, data.subscribed[index] );
              }

@@ -11,7 +11,7 @@ let newOptions = [];
 newOptions.push({ value:"", label:"Nothing Selected"});
 
 for( let index=0; index < props.subscribedComponents.length; index++ ){
-   if ( props.subscribedComponents[index].type == "Temperature" ){
+   if ( props.subscribedComponents[index].type === "Temperature" ){
         let value = props.subscribedComponents[index].symName;
         let label = props.subscribedComponents[index].property;
        newOptions.push({ value:value, label:label});
@@ -30,13 +30,13 @@ useEffect(() => {
            let command = {};
            let commandExists = [];
            commandExists = commands.filter(element => 
-               element.name == props.info.commands[index].Name
+               element.name === props.info.commands[index].Name
            )
-           if ( commandExists.length != 0 ) {
+           if ( commandExists.length !== 0 ) {
                command = commandExists[0]; 
            } else {
                let value = props.info.commands[index].value;
-               if (props.info.commands[index].type == "slider") {
+               if (props.info.commands[index].type === "slider") {
                    value = { x:value};
                }
                command.name = props.info.commands[index].Name;
@@ -54,7 +54,7 @@ let runSet = (name,value) => {
     setCommands((commands) => {              
         let commandsState = [];
         for ( let index = 0; index < commands.length; index++ ){ 
-            if (commands[index].name == name) {
+            if (commands[index].name === name) {
                 let command = {};
                 command.name = commands[index].name;
                 command.value = value;
@@ -112,14 +112,14 @@ let handlePIDchange = (name,value) => {
   return (
    <>
     {(commands && props.info.subscribed)?commands.map( (c) => 
-     <>{(c.type=="dropDown")?
+     <div key={c.name} >{(c.type==="dropDown")?
      <Select name={c.name}
              options={newOptions}
              onChange={(e) => handleChange(c.name,e)}
              value={c.value}
              isSearchable={false}
               />
-     :(c.type=="slider")?
+     :(c.type==="slider")?
       <Slider
         axis="x"
         xstep={0.01}
@@ -128,21 +128,21 @@ let handlePIDchange = (name,value) => {
         x={c.value.x}
         onChange={({ x }) => handleSlider(c.name,x)}
       />
-      :(c.type=="button")?
+      :(c.type==="button")?
       <div>
       <button type="button" 
              name={c.name}
-             onClick={() => handlePIDchange(c.name, c.value)} >{c.value?"PID Off":"PID On"}</button>
+             onClick={() => handlePIDchange(c.name, c.value)} >{c.value?c.name + " Off":c.name + " On"}</button>
       </div>
       :
       <div>
         <input type="text" 
              name={c.name}
              onChange={(e) => handleCommand(c.name,e)} />
-     </div>}</>):""}
+     </div>}</div>):""}
      <div>
     <input type="checkbox" name={props.info.property} id={props.info.property} checked={checked} onChange={handleCheckboxChange}/>
-    <label for={props.info.property} >{props.info.property}</label>
+    <label htmlFor={props.info.property} >{props.info.property}</label>
     </div>
    </>
   );

@@ -13,6 +13,19 @@ export default function PropertiesComponent() {
 
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
+    socket.on("error", (error) => {
+       console.log(error); 
+    });
+
+    socket.on("connect", () => {
+       console.log(socket.id); 
+    });
+
+    socket.on("connect_error", (error) => {
+       console.log(error); 
+    });
+
+
     socket.on("Properties", data => {
    //   data.value.sort();
       setResProp(resProp => {

@@ -16,12 +16,12 @@ const addData = ( type, value ) => {
 };
 
 const getTimeLimit = ( type, callback ) => {
-     console.log( "type: " + type );
+   //  console.log( "type: " + type );
      db.get('SELECT MIN(createDate) FROM ' + type,[],(err, row) => {
          if (err) {
               return console.error(err.message);
          }
-         console.log(row);
+     //    console.log(row);
          if (row) {
               callback( type, row["MIN(createDate)"] );
          }
@@ -29,7 +29,7 @@ const getTimeLimit = ( type, callback ) => {
 }
 
 const getTypeData = ( type, callback ) => {
-     console.log( "type: " + type );
+   //  console.log( "type: " + type );
      db.all('SELECT * FROM ' + type + ' ORDER BY createDate ASC',[],(err, rows) => {
          if (err) {
               return console.error(err.message);

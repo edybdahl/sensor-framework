@@ -28,7 +28,7 @@ export default function ValueComponent(props) {
                 };
   const sectionSizes= {
                    "Temperature": 10,
-                   "pH":10,
+                   "pH":1,
                    "TempController":1                
                 }
   const angles= {

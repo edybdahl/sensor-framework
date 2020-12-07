@@ -17,8 +17,8 @@ sensorCashe.subscribe( function( type, value ) {
 })
 
 const callLisener = ( event, socket, listener ) => {
-   console.log( "router recieved" );
-   console.log( event );
+  // console.log( "router recieved" );
+  // console.log( event );
    //should this be async.
    if ( event.type == "resetCommand" ) {
        sensorCashe.callListener( event, null);
@@ -64,7 +64,7 @@ const isSubscribedData = (sublistener) => {
                subscribed.push(iterator[key]);
           }
      }
-     console.log("subscribed " + subscribed);
+   //  console.log("subscribed " + subscribed);
      return subscribed;
 }
 
