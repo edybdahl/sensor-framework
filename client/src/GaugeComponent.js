@@ -42,18 +42,20 @@ const ticks = [];
 
 if (props.type === "linear") {
 for(let index=0; index < scale + 1; index++ ) {
-     ticks.push(<><line y1={0.5-0.125}
+     ticks.push(<React.Fragment key={index.toString() + "big"}><line y1={0.5-0.125}
                     x1={1.8/scale*index - 0.9} 
                     y2={0.5+0.125} 
                     x2={1.8/scale*index - 0.9} 
                     stroke="black" strokeWidth="0.012" />
               <text x={1.8/scale*index - 0.92}
                     y={0.5-0.30}         
-                    style={{font: "0.05px sans-serif"}} >{(index + props.min)}</text></>
+                    style={{font: "0.05px sans-serif"}} >{(index + props.min)}</text>
+                </React.Fragment>
     );
 }
 for ( let index=0; index < scale*5 + 1; index++ ){            
-    ticks.push(<line y1={0.5-0.0625}
+    ticks.push(<line key={index.toString() + "small"}
+                    y1={0.5-0.0625}
                     x1={1.8/(scale*5)*index - 0.9} 
                     y2={0.5+0.0625} 
                     x2={1.8/(scale*5)*index - 0.9} 
@@ -62,19 +64,22 @@ for ( let index=0; index < scale*5 + 1; index++ ){
 }
 } else {
 for(let index=0; index < numberOfTicks; index++ ) {
-   ticks.push(<><line y1={-0.75*Math.sin(sliceSize * index - offset)}
+   ticks.push(<React.Fragment key={index.toString() + "big"}>
+              <line y1={-0.75*Math.sin(sliceSize * index - offset)}
                     x1={-0.75*Math.cos(sliceSize * index - offset)} 
                     y2={-1*Math.sin(sliceSize * index - offset)} 
                     x2={-1*Math.cos(sliceSize * index - offset)} 
                     stroke="black" strokeWidth="0.012" />
               <text x={-0.60*Math.cos(sliceSize * index - offset) - 0.02}
                     y={-0.60*Math.sin(sliceSize * index - offset) + 0.02}         
-                    style={{font: "0.05px sans-serif"}} >{(index + props.min/sectionSize)*sectionSize}</text></>
+                    style={{font: "0.05px sans-serif"}} >{(index + props.min/sectionSize)*sectionSize}</text>
+              </React.Fragment >
     );
 }
 
 for ( let index=0; index < (numberOfTicks - 1)*2 + 1; index++ ){            
-    ticks.push(<line y1={-0.85*Math.sin(sliceSize/2 * index - offset)}
+    ticks.push(<line key={index.toString() + "small"} 
+                    y1={-0.85*Math.sin(sliceSize/2 * index - offset)}
                     x1={-0.85*Math.cos(sliceSize/2 * index - offset)} 
                     y2={-1*Math.sin(sliceSize/2 * index - offset)} 
                     x2={-1*Math.cos(sliceSize/2 * index - offset)} 
@@ -83,7 +88,8 @@ for ( let index=0; index < (numberOfTicks - 1)*2 + 1; index++ ){
 }
 
 for ( let index=0; index < (numberOfTicks - 1)*10 + 1; index++ ){            
-    ticks.push(<line y1={-0.90*Math.sin(sliceSize/10 * index - offset)}
+    ticks.push(<line key={index.toString() + "smaller"} 
+                    y1={-0.90*Math.sin(sliceSize/10 * index - offset)}
                     x1={-0.90*Math.cos(sliceSize/10 * index - offset)} 
                     y2={-1*Math.sin(sliceSize/10 * index - offset)} 
                     x2={-1*Math.cos(sliceSize/10 * index - offset)} 
@@ -94,7 +100,8 @@ for ( let index=0; index < (numberOfTicks - 1)*10 + 1; index++ ){
 if ( props.tempSet != null ) {
       let tsPercentage = (props.tempSet - props.min)/scale;
       let tsAngle = (props.angle.endAngle - props.angle.startAngle)*tsPercentage
-      ticks.push(<line y1={-0.50*Math.sin(tsAngle - sliceSize*3)}
+      ticks.push(<line key={"SP"} 
+                    y1={-0.50*Math.sin(tsAngle - sliceSize*3)}
                     x1={-0.50*Math.cos(tsAngle  - sliceSize*3)} 
                     y2={-1*Math.sin(tsAngle  - sliceSize*3)} 
                     x2={-1*Math.cos(tsAngle  - sliceSize*3)} 
@@ -146,13 +153,11 @@ let digitalValue =  (props.type==="linear")?
                     </text>:""}
                     </>
   return (
-      <>  
           <svg width="9em" viewBox={[-1,-1,2,2].join(" ")} >            
               {backBone} 
               {ticks}
               {digitalValue}
            </svg>
-      </>
   );
 }
 

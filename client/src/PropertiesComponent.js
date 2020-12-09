@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
-import GridComponent from "./GridComponent"; 
+import GridComponent from "./GridComponent";
+console.log(process.env.REACT_APP_EXTURL);
+const ENDPOINT = process.env.REACT_APP_EXTURL;
 console.log(process.env.REACT_APP_URL);
-const ENDPOINT = process.env.REACT_APP_URL;
+const LOCALENDPOINT = process.env.REACT_APP_URL;
 var send = null;
 var sendCommand;
 var subscribed = [];
@@ -13,21 +15,82 @@ export default function PropertiesComponent() {
 
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
+    const socketlocal = socketIOClient(LOCALENDPOINT,{
+       autoConnect: false 
+    });
+
     socket.on("error", (error) => {
+       console.log("error");
        console.log(error); 
     });
 
     socket.on("connect", () => {
+       console.log("connect");
        console.log(socket.id); 
     });
 
     socket.on("connect_error", (error) => {
-       console.log(error); 
+       console.log("connection error");
+       console.log(error);
+       socket.close(); 
+       socketlocal.open();
+     //  socket = socketlocal;
+       console.log("hi");
     });
 
-
     socket.on("Properties", data => {
-   //   data.value.sort();
+        setPropertyState(data);
+    });
+
+    socket.on("Values", data => {
+        setValuesState(data);
+    });
+
+    socket.on("Subscribe", data => {
+        socket.emit("Subscribed",{"subscribed":subscribed});
+    });
+
+    socket.on("Chart", data => {
+        socket.emit("Chart",{"charted": charted});
+    });
+
+    socketlocal.on("Properties", data => {
+        setPropertyState(data);
+    });
+
+    socketlocal.on("Values", data => {
+        setValuesState(data);
+    });
+
+    socketlocal.on("Subscribe", data => {
+        socket.emit("Subscribed",{"subscribed":subscribed});
+    });
+
+    socketlocal.on("Chart", data => {
+        socket.emit("Chart",{"charted": charted});
+    });
+
+    send = (mes) => {
+         if (socket.connected) { 
+            socket.emit("Property",mes);
+         } else if (socketlocal.connected) {
+            socketlocal.emit("Property",mes);
+         } 
+    };
+
+    sendCommand = (event) => {
+         if (socket.connected) { 
+            socket.emit("Command",event);
+         } else if (socketlocal.connected) {
+            socketlocal.emit("Command",event);
+         } 
+    };
+
+    return () => { socket.disconnect(); socketlocal.disconnect(); };
+  }, []);
+
+  let setPropertyState = (data) => {
+        //   data.value.sort();
       setResProp(resProp => {
                  let state = [];
                  for(let index=0;index<data.value.length;index++){
@@ -61,10 +124,10 @@ export default function PropertiesComponent() {
                                              else 
                                                   return b.subscribed - a.subscribed });
        });
-    });
+  }
 
-    socket.on("Values", data => {
-      setResProp(resProp => {
+  let setValuesState = (data) => {
+    setResProp(resProp => {
                  let state = [];
                  for(let index=0;index<resProp.length;index++){
                      if (resProp[index].property === data.type) {
@@ -107,22 +170,7 @@ export default function PropertiesComponent() {
                                              else 
                                                   return b.subscribed - a.subscribed});
         });
-    });
-
-    socket.on("Subscribe", data => {
-        socket.emit("Subscribed",{"subscribed":subscribed});
-    });
-
-    socket.on("Chart", data => {
-        socket.emit("Chart",{"charted": charted});
-    });
-
-    send = (mes) => {socket.emit("Property",mes)};
-
-    sendCommand = (event) => {socket.emit("Command",event)}
-
-    return () => socket.disconnect();
-  }, []);
+  }
 
   let handeCommandEvent = (event) => {
       sendCommand(event);

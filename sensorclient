@@ -1,4 +1,10 @@
 #!/bin/bash
+exthost=$(curl ifconfig.me)
+echo ${exthost}
+exthostip=$(echo -e "${exthost}" | sed -e 's/[[:space:]]*$//')
+echo ${exthostip}
+export REACT_APP_EXTURL="http://${exthostip}:4001"
+echo $(printenv REACT_APP_EXTURL)
 host=$(hostname -I)
 echo ${host}
 hostip=$(echo -e "${host}" | sed -e 's/[[:space:]]*$//')

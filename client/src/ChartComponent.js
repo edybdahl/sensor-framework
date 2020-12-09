@@ -250,7 +250,7 @@ const _renderAxises = () => {
       {xScale.ticks(5).map(t => {
           const x = xScale(t);
           return (
-            <React.Fragment key={t.toString()}>
+            <React.Fragment key={t.toString() + "x"}>
               <line
                 x1={x}
                 y1={HEIGHT - MARGIN.BOTTOM}
@@ -275,7 +275,7 @@ const _renderAxises = () => {
         {yScaleM[0]?yScaleM[0].ticks(3).map(t => {
           const y = yScaleM[0](t);
           return (
-            <React.Fragment key={t.toString()}>
+            <React.Fragment key={t.toString() + "0y"}>
               <line
                 x1={MARGIN.LEFT}
                 y1={y}
@@ -300,7 +300,7 @@ const _renderAxises = () => {
         {yScaleM[1]?yScaleM[1].ticks(3).map(t => {
           const y = yScaleM[1](t);
           return (
-            <React.Fragment key={t.toString()}>
+            <React.Fragment key={t.toString() + "1y"}>
               <line
                 x1={WIDTH - MARGIN.LEFT}
                 y1={y}
