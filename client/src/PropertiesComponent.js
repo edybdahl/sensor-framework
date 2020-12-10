@@ -63,11 +63,11 @@ export default function PropertiesComponent() {
     });
 
     socketlocal.on("Subscribe", data => {
-        socket.emit("Subscribed",{"subscribed":subscribed});
+        socketlocal.emit("Subscribed",{"subscribed":subscribed});
     });
 
     socketlocal.on("Chart", data => {
-        socket.emit("Chart",{"charted": charted});
+        socketlocal.emit("Chart",{"charted": charted});
     });
 
     send = (mes) => {
