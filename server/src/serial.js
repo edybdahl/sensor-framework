@@ -35,7 +35,7 @@ const parser = new Readline({ delimiter: '\r\n' });
 port.setEncoding("UTF8");
 port.pipe(parser);
 parser.on('data', function(data) {
-//	console.log("data: " + data);
+	console.log("data: " + data);
         // this can be asyncd. 
         listeners.forEach(listener => {
 		listener(data);
@@ -66,8 +66,8 @@ const isTimedOut = function () {
 };
 
 const callLisener = (event) => {
-  // console.log( "serial recieved" );
-  // console.log( event );
+   console.log( "serial recieved" );
+   console.log( event );
    if ( event.type == "probCommand" ) {
        pushCommand( event );
    } 

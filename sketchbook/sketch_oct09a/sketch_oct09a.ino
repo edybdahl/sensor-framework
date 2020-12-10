@@ -56,6 +56,7 @@ void setup(void)
   pinMode(PIN_INTERRUPT, INPUT);
     
   Serial.begin(115200);
+  while (!Serial) continue; 
   
   attachInterrupt(PIN_ZEROCROSS, Cross, RISING);
   

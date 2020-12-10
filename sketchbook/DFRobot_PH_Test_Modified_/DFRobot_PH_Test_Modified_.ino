@@ -37,6 +37,11 @@ byte OneWireAddress1[8];
 int selection = 0;
 volatile unsigned long _TemperatureAvailable = ULONG_MAX;  //When the temperature reading will
 
+String inputString = "";       // a string to hold incoming data
+boolean stringComplete = false;  // whether the string is complete
+
+bool CallibrateOn = false;
+
 void setup()
 {
     Serial.begin(115200); 
@@ -46,6 +51,8 @@ void setup()
     contructJsonProperties ();
     serializeJson(doc, Serial);
     Serial.println();
+
+    inputString.reserve(50);
 }
 
 bool OneWireSearch()
@@ -135,6 +142,26 @@ float OneWireFinishRead()
   return tempc;  
 }
 
+/*
+  SerialEvent occurs whenever a new data comes in the
+ hardware serial RX.  This routine is run between each
+ time loop() runs, so using delay inside loop can delay
+ response.  Multiple bytes of data may be available.
+ */
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag
+    // so the main loop can do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+}
+
 void contructJsonProperties () { 
     OneWireSearch(); 
     doc.clear();
@@ -148,6 +175,7 @@ void contructJsonProperties () {
     JsonArray commands = property.createNestedArray("Commands");
     JsonObject command1 = commands.createNestedObject(); 
     command1["Name"]="Callibrate";
+    command1["value"]=CallibrateOn;
     command1["type"]="button";
     int index = 0;
     while( OneWireAddress[index][0] !=0 && index < 5)
@@ -174,8 +202,37 @@ void contructJsonProperties () {
 
 void loop()
 {
+    if (stringComplete) {
+        StaticJsonDocument<100> docin;    
+        docin.clear(); 
+        deserializeJson(docin,inputString);
+        if (docin["Command"] == "Callibrate") {
+            CallibrateOn = docin["Value"];
+            if (CallibrateOn) {
+               doc.clear();
+               float mode = ph.calibration(voltage,temperature,(char*)"ENTERPH");    // calibration process by Serail CMD 
+               doc["mode"] = mode;
+               serializeJson(doc, Serial);
+               Serial.println();
+            } else {
+               doc.clear();
+               float mode1 = ph.calibration(voltage,temperature,(char*)"CALPH");  
+               doc["mode"] = mode1;    
+               serializeJson(doc, Serial);
+               Serial.println();     
+               doc.clear();
+               float mode = ph.calibration(voltage,temperature,(char*)"EXITPH");  
+               doc["mode"] = mode;    
+               serializeJson(doc, Serial);
+               Serial.println();     
+            }
+        }
+        inputString = "";
+        stringComplete = false;
+    }
+  
     static unsigned long timepointWhat = millis();
-    if(millis()-timepointWhat>10000U){
+    if(millis()-timepointWhat>7000U){
         timepointWhat = millis();
         contructJsonProperties();
         serializeJson(doc, Serial);
@@ -212,6 +269,7 @@ void loop()
         key = String( key + stringHEX );
     }               
     float value = OneWireFinishRead();
+    temperature = value; 
     doc[key] = value;   
     serializeJson(doc, Serial);
     Serial.println();     
@@ -221,10 +279,10 @@ void loop()
        OneWireStartRead();
     }
     }
-    ph.calibration(voltage,temperature);           // calibration process by Serail CMD
+  //  ph.calibration(voltage,temperature);           // calibration process by Serail CMD
 }
 
-float readTemperature()
+/*float readTemperature()
 {
   //add your code here to get the temperature from your temperature sensor
-}
+}*/
