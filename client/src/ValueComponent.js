@@ -19,22 +19,34 @@ export default function ValueComponent(props) {
   const units = {
                    "Temperature": String.fromCharCode(8451),
                    "pH":" pH",
-                   "TempController":"A"+String.fromCharCode(9190)
+                   "TempController":"A"+String.fromCharCode(9190),
+                   "Amps":"A"+String.fromCharCode(9170),
+                   "Volts":"V"+String.fromCharCode(9170),
+                   "Watts":"W"
                 };
   const types= {
                    "Temperature": "arc",
                    "pH":"linear",
-                   "TempController":"arc"
+                   "TempController":"arc",
+                   "Amps":"arc",
+                   "Volts":"arc",
+                   "Watts":"arc"
                 };
-  const sectionSizes= {
+  const sectionSizes= {     
                    "Temperature": 10,
                    "pH":1,
-                   "TempController":1                
+                   "TempController":1, 
+                   "Amps":1,
+                   "Volts":1,
+                   "Watts":10
                 }
   const angles= {
                    "Temperature": { "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
                    "pH":{ "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
-                   "TempController":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) }               
+                   "TempController":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) },  
+                   "Amps":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) } ,
+                   "Volts":{ "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) } ,
+                   "Watts":{ "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) } 
                 }
   return (
      <>

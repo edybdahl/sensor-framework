@@ -87,7 +87,7 @@ void loop()
     lcd.print(acaf);
     
     doc.clear();
-    String key = "SolarVoltage";
+    String key = "SolarVolts";
     doc[key] = voltstuff;
     serializeJson(doc, Serial);
     Serial.println();    
