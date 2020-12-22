@@ -18,6 +18,7 @@ export default function ValueComponent(props) {
 
   const units = {
                    "Temperature": String.fromCharCode(8451),
+                   "Thermalcouple": String.fromCharCode(8451),
                    "pH":" pH",
                    "TempController":"A"+String.fromCharCode(9190),
                    "Amps":"A"+String.fromCharCode(9170),
@@ -26,6 +27,7 @@ export default function ValueComponent(props) {
                 };
   const types= {
                    "Temperature": "arc",
+                   "Thermalcouple": "arc",
                    "pH":"linear",
                    "TempController":"arc",
                    "Amps":"arc",
@@ -34,6 +36,7 @@ export default function ValueComponent(props) {
                 };
   const sectionSizes= {     
                    "Temperature": 10,
+                   "Thermalcouple": 100,
                    "pH":1,
                    "TempController":1, 
                    "Amps":1,
@@ -42,6 +45,7 @@ export default function ValueComponent(props) {
                 }
   const angles= {
                    "Temperature": { "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
+                   "Thermalcouple": { "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
                    "pH":{ "startAngle":-Math.PI*(3/4), "endAngle":Math.PI*(3/4) },
                    "TempController":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) },  
                    "Amps":{ "startAngle":-Math.PI*(1/4), "endAngle":Math.PI*(1/4) } ,
